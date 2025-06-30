@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChatPage extends StatefulWidget {
@@ -12,6 +13,7 @@ class _ChatPageState extends State<ChatPage> {
   final _messageController = TextEditingController();
   final _supabase = Supabase.instance.client;
   late final Stream<List<Map<String, dynamic>>> _messagesStream;
+  final String myName = '익명'; // 임시 내 닉네임
 
   @override
   void initState() {
@@ -56,14 +58,122 @@ class _ChatPageState extends State<ChatPage> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
-                    return ListTile(
-                      title: Text(msg['content'] ?? ''),
-                      subtitle: Text(msg['sender'] ?? ''),
-                      trailing: Text(
-                        msg['created_at'] != null
-                            ? msg['created_at'].toString().substring(0, 16)
-                            : '',
-                        style: const TextStyle(fontSize: 10),
+                    final isMe = msg['sender'] == myName;
+                    final sender = msg['sender'] ?? '';
+                    final content = msg['content'] ?? '';
+                    final createdAt = msg['created_at'] != null
+                        ? msg['created_at'].toString().substring(0, 16)
+                        : '';
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 8,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: isMe
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (!isMe) ...[
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.grey[400],
+                              child: Text(
+                                sender.isNotEmpty ? sender[0] : '?',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 14,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isMe ? Colors.blue[400] : Colors.white,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: const Radius.circular(18),
+                                  topRight: const Radius.circular(18),
+                                  bottomLeft: isMe
+                                      ? const Radius.circular(18)
+                                      : const Radius.circular(4),
+                                  bottomRight: isMe
+                                      ? const Radius.circular(4)
+                                      : const Radius.circular(18),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.07),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                crossAxisAlignment: isMe
+                                    ? CrossAxisAlignment.end
+                                    : CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        sender,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: isMe
+                                              ? Colors.white70
+                                              : Colors.blueGrey,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        createdAt,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: isMe
+                                              ? Colors.white54
+                                              : Colors.grey[500],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    content,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: isMe
+                                          ? Colors.white
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          if (isMe) ...[
+                            const SizedBox(width: 8),
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.blue[400],
+                              child: Text(
+                                sender.isNotEmpty ? sender[0] : '?',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     );
                   },
@@ -76,9 +186,40 @@ class _ChatPageState extends State<ChatPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: const InputDecoration(hintText: '메시지를 입력하세요'),
+                  child: Focus(
+                    onKeyEvent: (node, event) {
+                      if (event is KeyDownEvent &&
+                          event.logicalKey == LogicalKeyboardKey.enter) {
+                        final Set<LogicalKeyboardKey> pressed =
+                            HardwareKeyboard.instance.logicalKeysPressed;
+                        final bool hasModifier =
+                            pressed.contains(LogicalKeyboardKey.control) ||
+                            pressed.contains(LogicalKeyboardKey.shift) ||
+                            pressed.contains(LogicalKeyboardKey.alt) ||
+                            pressed.contains(LogicalKeyboardKey.meta);
+
+                        if (!hasModifier) {
+                          _sendMessage();
+                          return KeyEventResult.handled;
+                        }
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: TextField(
+                      controller: _messageController,
+                      minLines: 1,
+                      maxLines: 5,
+                      decoration: const InputDecoration(
+                        hintText: '메시지를 입력하세요',
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
+                      onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                    ),
                   ),
                 ),
                 IconButton(
