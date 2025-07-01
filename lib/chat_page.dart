@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
 import 'chat_message.dart';
 
 class ChatPage extends StatefulWidget {
@@ -152,6 +153,27 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  String _formatTimestamp(String timestamp) {
+    final DateTime messageTime = DateTime.parse(timestamp);
+    final DateTime now = DateTime.now();
+    final DateTime today = DateTime(now.year, now.month, now.day);
+    final DateTime yesterday = DateTime(now.year, now.month, now.day - 1);
+
+    if (messageTime.isAfter(today)) {
+      return DateFormat('a h:mm', 'ko-KR').format(messageTime); // 오늘 오전/오후 0:00
+    } else if (messageTime.isAfter(yesterday)) {
+      return DateFormat(
+        '어제 a h:mm',
+        'ko_KR',
+      ).format(messageTime); // 어제 오전/오후 0:00
+    } else {
+      return DateFormat(
+        'yyyy년 M월 d일 a h:mm',
+        'ko_KR',
+      ).format(messageTime); // 2025년 7월 1일 오전/오후 0:00
+    }
+  }
+
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
     // if (content.isEmpty) return; // 이제 버튼 비활성화로 처리되므로 필요 없음
@@ -238,7 +260,7 @@ class _ChatPageState extends State<ChatPage> {
                     final sender = msg['sender'] ?? '';
                     final content = msg['content'] ?? '';
                     final createdAt = msg['created_at'] != null
-                        ? msg['created_at'].toString().substring(0, 16)
+                        ? _formatTimestamp(msg['created_at'] as String)
                         : '';
                     return ChatMessage(
                       content: content,
