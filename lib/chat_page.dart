@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'chat_message.dart';
 
 class ChatPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class _ChatPageState extends State<ChatPage> {
   final _supabase = Supabase.instance.client;
   late final Stream<List<Map<String, dynamic>>> _messagesStream;
   final String myName = '익명'; // 임시 내 닉네임
+  String _currentNickname = '익명'; // 현재 사용자 닉네임
   final _scrollController = ScrollController();
   bool _showScrollToBottomButton = false;
   bool _isInitialLoad = true;
@@ -31,6 +33,69 @@ class _ChatPageState extends State<ChatPage> {
 
     _scrollController.addListener(_scrollListener);
     _messageController.addListener(_onMessageChanged);
+
+    _loadNickname();
+  }
+
+  Future<void> _loadNickname() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedNickname = prefs.getString('nickname');
+    if (savedNickname != null && savedNickname.isNotEmpty) {
+      setState(() {
+        _currentNickname = savedNickname;
+      });
+    } else {
+      // 닉네임이 없으면 설정 다이얼로그 표시
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showNicknameDialog();
+      });
+    }
+  }
+
+  Future<void> _saveNickname(String nickname) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('nickname', nickname);
+    setState(() {
+      _currentNickname = nickname;
+    });
+  }
+
+  Future<void> _showNicknameDialog() async {
+    String? newNickname = _currentNickname;
+    await showDialog<String>(
+      context: context,
+      barrierDismissible: false, // 사용자가 다이얼로그 밖을 탭하여 닫을 수 없음
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('닉네임 설정'),
+          content: TextField(
+            onChanged: (value) {
+              newNickname = value;
+            },
+            controller: TextEditingController(text: _currentNickname),
+            decoration: const InputDecoration(hintText: '닉네임을 입력하세요'),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('저장'),
+              onPressed: () {
+                if (newNickname != null && newNickname!.trim().isNotEmpty) {
+                  _saveNickname(newNickname!);
+                  Navigator.of(context).pop();
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('닉네임을 입력해주세요.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -80,7 +145,7 @@ class _ChatPageState extends State<ChatPage> {
     try {
       await _supabase.from('messages').insert({
         'content': content,
-        'sender': '익명', // 필요시 사용자 이름으로 변경
+        'sender': _currentNickname, // 설정된 닉네임 사용
       });
       _messageController.clear();
     } catch (e) {
@@ -97,7 +162,16 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('실시간 채팅')),
+      appBar: AppBar(
+        title: const Text('실시간 채팅'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            onPressed: _showNicknameDialog,
+            tooltip: '닉네임 설정',
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
