@@ -171,18 +171,24 @@ class _ChatPageState extends State<ChatPage> {
                           event.logicalKey == LogicalKeyboardKey.enter) {
                         final Set<LogicalKeyboardKey> pressed =
                             HardwareKeyboard.instance.logicalKeysPressed;
-                        final bool hasModifier =
-                            pressed.contains(LogicalKeyboardKey.control) ||
-                            pressed.contains(LogicalKeyboardKey.shift) ||
-                            pressed.contains(LogicalKeyboardKey.alt) ||
-                            pressed.contains(LogicalKeyboardKey.meta);
 
-                        if (!hasModifier) {
-                          if (_messageController.text.trim().isEmpty) {
-                            return KeyEventResult.ignored;
-                          }
-                          _sendMessage();
-                          return KeyEventResult.handled;
+                        final bool isControlPressed =
+                            pressed.contains(LogicalKeyboardKey.controlLeft) ||
+                            pressed.contains(LogicalKeyboardKey.controlRight);
+                        final bool isShiftPressed =
+                            pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                            pressed.contains(LogicalKeyboardKey.shiftRight);
+
+                        if (isControlPressed || isShiftPressed) {
+                          return KeyEventResult
+                              .handled; // 이벤트 처리 완료, TextField의 기본 동작 막음
+                        } else {
+                          // ENTER만 눌렀을 때: 메시지 전송 (비어있지 않은 경우)
+                          if (_messageController.text.trim().isNotEmpty) {
+                            _sendMessage();
+                          } else {}
+                          return KeyEventResult
+                              .handled; // 이벤트 처리 완료, TextField의 기본 개행 막음
                         }
                       }
                       return KeyEventResult.ignored;
@@ -199,7 +205,6 @@ class _ChatPageState extends State<ChatPage> {
                         ),
                       ),
                       keyboardType: TextInputType.multiline,
-                      textInputAction: TextInputAction.newline,
                       onTapOutside: (event) => FocusScope.of(context).unfocus(),
                     ),
                   ),
