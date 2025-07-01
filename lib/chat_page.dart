@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 import 'chat_message.dart';
 
 class ChatPage extends StatefulWidget {
@@ -15,8 +16,8 @@ class _ChatPageState extends State<ChatPage> {
   final _messageController = TextEditingController();
   final _supabase = Supabase.instance.client;
   late final Stream<List<Map<String, dynamic>>> _messagesStream;
-  final String myName = '익명'; // 임시 내 닉네임
   String _currentNickname = '익명'; // 현재 사용자 닉네임
+  String? _myLocalUserId; // 현재 사용자의 로컬 고유 ID
   final _scrollController = ScrollController();
   bool _showScrollToBottomButton = false;
   bool _isInitialLoad = true;
@@ -35,6 +36,19 @@ class _ChatPageState extends State<ChatPage> {
     _messageController.addListener(_onMessageChanged);
 
     _loadNickname();
+    _loadLocalUserId();
+  }
+
+  Future<void> _loadLocalUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? localUserId = prefs.getString('local_user_id');
+    if (localUserId == null) {
+      localUserId = const Uuid().v4();
+      await prefs.setString('local_user_id', localUserId);
+    }
+    setState(() {
+      _myLocalUserId = localUserId;
+    });
   }
 
   Future<void> _loadNickname() async {
@@ -146,6 +160,7 @@ class _ChatPageState extends State<ChatPage> {
       await _supabase.from('messages').insert({
         'content': content,
         'sender': _currentNickname, // 설정된 닉네임 사용
+        'local_user_id': _myLocalUserId, // 로컬 고유 ID 저장
       });
       _messageController.clear();
     } catch (e) {
@@ -217,7 +232,9 @@ class _ChatPageState extends State<ChatPage> {
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
-                    final isMe = msg['sender'] == myName;
+                    final isMe =
+                        msg['local_user_id'] ==
+                        _myLocalUserId; // local_user_id로 나를 식별
                     final sender = msg['sender'] ?? '';
                     final content = msg['content'] ?? '';
                     final createdAt = msg['created_at'] != null
