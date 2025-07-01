@@ -15,16 +15,51 @@ class _ChatPageState extends State<ChatPage> {
   final _supabase = Supabase.instance.client;
   late final Stream<List<Map<String, dynamic>>> _messagesStream;
   final String myName = '익명'; // 임시 내 닉네임
+  final _scrollController = ScrollController();
+  bool _showScrollToBottomButton = false;
 
   @override
   void initState() {
     super.initState();
-    // 실시간 메시지 스트림 구독 (오름차순 명확히 지정)
     _messagesStream = _supabase
         .from('messages')
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: true)
         .map((data) => data);
+
+    _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels <
+        _scrollController.position.maxScrollExtent) {
+      if (!_showScrollToBottomButton) {
+        setState(() {
+          _showScrollToBottomButton = true;
+        });
+      }
+    } else {
+      if (_showScrollToBottomButton) {
+        setState(() {
+          _showScrollToBottomButton = false;
+        });
+      }
+    }
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
   }
 
   Future<void> _sendMessage() async {
@@ -66,6 +101,7 @@ class _ChatPageState extends State<ChatPage> {
                 }
                 final messages = snapshot.data!;
                 return ListView.builder(
+                  controller: _scrollController,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final msg = messages[index];
@@ -136,6 +172,12 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
+      floatingActionButton: _showScrollToBottomButton
+          ? FloatingActionButton(
+              onPressed: _scrollToBottom,
+              child: const Icon(Icons.arrow_downward),
+            )
+          : null,
     );
   }
 }
