@@ -30,11 +30,21 @@ class _ChatPageState extends State<ChatPage> {
     final content = _messageController.text.trim();
     if (content.isEmpty) return;
 
-    await _supabase.from('messages').insert({
-      'content': content,
-      'sender': '익명', // 필요시 사용자 이름으로 변경
-    });
-    _messageController.clear();
+    try {
+      await _supabase.from('messages').insert({
+        'content': content,
+        'sender': '익명', // 필요시 사용자 이름으로 변경
+      });
+      _messageController.clear();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('메시지 전송에 실패했습니다.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
