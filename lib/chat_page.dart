@@ -18,6 +18,7 @@ class _ChatPageState extends State<ChatPage> {
   final _scrollController = ScrollController();
   bool _showScrollToBottomButton = false;
   bool _isInitialLoad = true;
+  bool _isMessageEmpty = true;
 
   @override
   void initState() {
@@ -29,12 +30,15 @@ class _ChatPageState extends State<ChatPage> {
         .map((data) => data);
 
     _scrollController.addListener(_scrollListener);
+    _messageController.addListener(_onMessageChanged);
   }
 
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
+    _messageController.removeListener(_onMessageChanged);
+    _messageController.dispose();
     super.dispose();
   }
 
@@ -55,6 +59,12 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  void _onMessageChanged() {
+    setState(() {
+      _isMessageEmpty = _messageController.text.trim().isEmpty;
+    });
+  }
+
   void _scrollToBottom() {
     _scrollController.animateTo(
       _scrollController.position.maxScrollExtent,
@@ -65,7 +75,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _sendMessage() async {
     final content = _messageController.text.trim();
-    if (content.isEmpty) return;
+    // if (content.isEmpty) return; // 이제 버튼 비활성화로 처리되므로 필요 없음
 
     try {
       await _supabase.from('messages').insert({
@@ -168,6 +178,9 @@ class _ChatPageState extends State<ChatPage> {
                             pressed.contains(LogicalKeyboardKey.meta);
 
                         if (!hasModifier) {
+                          if (_messageController.text.trim().isEmpty) {
+                            return KeyEventResult.ignored;
+                          }
                           _sendMessage();
                           return KeyEventResult.handled;
                         }
@@ -193,7 +206,7 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: _sendMessage,
+                  onPressed: _isMessageEmpty ? null : _sendMessage,
                 ),
               ],
             ),
