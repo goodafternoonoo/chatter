@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:provider/provider.dart'; // provider 패키지 임포트
-import 'chat_page.dart';
-import 'models/theme_mode_provider.dart'; // ThemeModeProvider 임포트
+import 'package:provider/provider.dart';
+import 'screens/chat_page.dart';
+import 'models/theme_mode_provider.dart';
+import 'providers/chat_provider.dart'; // ChatProvider 임포트
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,10 +14,13 @@ void main() async {
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
-  await initializeDateFormatting('ko', null); // intl 로케일 데이터 초기화
+  await initializeDateFormatting('ko', null);
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeModeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeModeProvider()),
+        ChangeNotifierProvider(create: (context) => ChatProvider()),
+      ],
       child: const MyApp(),
     ),
   );

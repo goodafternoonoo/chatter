@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'chat_message.dart';
-import 'models/message.dart';
-import 'models/theme_mode_provider.dart';
-import 'providers/chat_provider.dart';
+import 'package:my_chat_app/chat_message.dart';
+import 'package:my_chat_app/models/message.dart';
+import 'package:my_chat_app/models/theme_mode_provider.dart';
+import 'package:my_chat_app/providers/chat_provider.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});

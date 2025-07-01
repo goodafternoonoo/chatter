@@ -1,27 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'models/message.dart';
 
 class ChatMessage extends StatelessWidget {
   const ChatMessage({
     super.key,
-    required this.content,
-    required this.sender,
-    required this.createdAt,
+    required this.message,
     required this.isMe,
   });
 
-  final String content;
-  final String sender;
-  final String createdAt;
+  final Message message;
   final bool isMe;
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+
+    if (timestamp.isAfter(today)) {
+      return DateFormat('a h:mm', 'ko-KR').format(timestamp);
+    } else if (timestamp.isAfter(yesterday)) {
+      return DateFormat('어제 a h:mm', 'ko_KR').format(timestamp);
+    } else {
+      return DateFormat('yyyy년 M월 d일 a h:mm', 'ko_KR').format(timestamp);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final createdAt = _formatTimestamp(message.createdAt);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: Row(
-        mainAxisAlignment: isMe
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
@@ -29,7 +40,7 @@ class ChatMessage extends StatelessWidget {
               radius: 18,
               backgroundColor: Colors.grey[400],
               child: Text(
-                sender.isNotEmpty ? sender[0] : '?',
+                message.sender.isNotEmpty ? message.sender[0] : '?',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -48,12 +59,8 @@ class ChatMessage extends StatelessWidget {
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(12),
                   topRight: const Radius.circular(12),
-                  bottomLeft: isMe
-                      ? const Radius.circular(12)
-                      : const Radius.circular(4),
-                  bottomRight: isMe
-                      ? const Radius.circular(4)
-                      : const Radius.circular(12),
+                  bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
+                  bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
                 ),
                 boxShadow: [
                   BoxShadow(
@@ -64,15 +71,13 @@ class ChatMessage extends StatelessWidget {
                 ],
               ),
               child: Column(
-                crossAxisAlignment: isMe
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
+                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        sender,
+                        message.sender,
                         style: Theme.of(context).textTheme.labelMedium!.copyWith(
                               color: isMe
                                   ? Theme.of(context).colorScheme.onPrimaryContainer
@@ -84,17 +89,15 @@ class ChatMessage extends StatelessWidget {
                         createdAt,
                         style: Theme.of(context).textTheme.labelSmall!.copyWith(
                               color: isMe
-                                  ? Theme.of(context).colorScheme.onPrimaryContainer
-                                      .withOpacity(0.7)
-                                  : Theme.of(context).colorScheme.onSurfaceVariant
-                                      .withOpacity(0.7),
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7)
+                                  : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
                             ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    content,
+                    message.content,
                     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                           color: isMe
                               ? Theme.of(context).colorScheme.onPrimaryContainer
@@ -111,7 +114,7 @@ class ChatMessage extends StatelessWidget {
               radius: 18,
               backgroundColor: Theme.of(context).colorScheme.primary,
               child: Text(
-                sender.isNotEmpty ? sender[0] : '?',
+                message.sender.isNotEmpty ? message.sender[0] : '?',
                 style: Theme.of(context).textTheme.labelLarge!.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
