@@ -17,6 +17,7 @@ class _ChatPageState extends State<ChatPage> {
   final String myName = '익명'; // 임시 내 닉네임
   final _scrollController = ScrollController();
   bool _showScrollToBottomButton = false;
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
@@ -100,6 +101,18 @@ class _ChatPageState extends State<ChatPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final messages = snapshot.data!;
+
+                // 초기 로드 시 최신 메시지로 스크롤
+                if (_isInitialLoad && messages.isNotEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _scrollController.jumpTo(
+                      _scrollController.position.maxScrollExtent,
+                    );
+                    setState(() {
+                      _isInitialLoad = false;
+                    });
+                  });
+                }
 
                 // 새 메시지 도착 시 자동 스크롤 로직
                 WidgetsBinding.instance.addPostFrameCallback((_) {
