@@ -100,6 +100,21 @@ class _ChatPageState extends State<ChatPage> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 final messages = snapshot.data!;
+
+                // 새 메시지 도착 시 자동 스크롤 로직
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (_scrollController.hasClients &&
+                      _scrollController.position.pixels >=
+                          _scrollController.position.maxScrollExtent - 100) {
+                    // 100 픽셀 이내면 맨 아래로 간주
+                    _scrollController.animateTo(
+                      _scrollController.position.maxScrollExtent,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeOut,
+                    );
+                  }
+                });
+
                 return ListView.builder(
                   controller: _scrollController,
                   itemCount: messages.length,
