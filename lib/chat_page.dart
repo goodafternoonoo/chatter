@@ -4,7 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart'; // provider 임포트
 import 'chat_message.dart';
+import 'models/theme_mode_provider.dart'; // ThemeModeProvider 임포트
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -198,10 +200,19 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final themeModeProvider = context.watch<ThemeModeProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('실시간 채팅'),
         actions: [
+          IconButton(
+            icon: Icon(themeModeProvider.themeMode == ThemeMode.dark
+                ? Icons.light_mode
+                : Icons.dark_mode),
+            onPressed: themeModeProvider.toggleTheme,
+            tooltip: '테마 전환',
+          ),
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: _showNicknameDialog,
