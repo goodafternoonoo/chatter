@@ -99,9 +99,9 @@ class _ChatPageState extends State<ChatPage> {
                   Navigator.of(context).pop();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('닉네임을 입력해주세요.'),
-                      backgroundColor: Colors.red,
+                    SnackBar(
+                      content: const Text('닉네임을 입력해주세요.'),
+                      backgroundColor: Theme.of(context).colorScheme.error,
                     ),
                   );
                 }
@@ -188,9 +188,9 @@ class _ChatPageState extends State<ChatPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('메시지 전송에 실패했습니다.'),
-          backgroundColor: Colors.red,
+        SnackBar(
+          content: const Text('메시지 전송에 실패했습니다.'),
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }

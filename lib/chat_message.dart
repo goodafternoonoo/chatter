@@ -42,21 +42,23 @@ class ChatMessage extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
               decoration: BoxDecoration(
-                color: isMe ? Colors.blue[400] : Colors.white,
+                color: isMe
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
+                  topLeft: const Radius.circular(12),
+                  topRight: const Radius.circular(12),
                   bottomLeft: isMe
-                      ? const Radius.circular(18)
+                      ? const Radius.circular(12)
                       : const Radius.circular(4),
                   bottomRight: isMe
                       ? const Radius.circular(4)
-                      : const Radius.circular(18),
+                      : const Radius.circular(12),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.07),
-                    blurRadius: 6,
+                    color: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
+                    blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
                 ],
@@ -71,29 +73,33 @@ class ChatMessage extends StatelessWidget {
                     children: [
                       Text(
                         sender,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: isMe ? Colors.white70 : Colors.blueGrey,
-                        ),
+                        style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                              color: isMe
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         createdAt,
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: isMe ? Colors.white54 : Colors.grey[500],
-                        ),
+                        style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                              color: isMe
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                                      .withOpacity(0.7)
+                                  : Theme.of(context).colorScheme.onSurfaceVariant
+                                      .withOpacity(0.7),
+                            ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     content,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: isMe ? Colors.white : Colors.black87,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: isMe
+                              ? Theme.of(context).colorScheme.onPrimaryContainer
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                   ),
                 ],
               ),
@@ -103,13 +109,12 @@ class ChatMessage extends StatelessWidget {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 18,
-              backgroundColor: Colors.blue[400],
+              backgroundColor: Theme.of(context).colorScheme.primary,
               child: Text(
                 sender.isNotEmpty ? sender[0] : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
               ),
             ),
           ],
