@@ -180,6 +180,21 @@ class _ChatPageState extends State<ChatPage> {
                             pressed.contains(LogicalKeyboardKey.shiftRight);
 
                         if (isControlPressed || isShiftPressed) {
+                          // CTRL + ENTER 또는 SHIFT + ENTER: 개행 처리
+                          final text = _messageController.text;
+                          final selection = _messageController.selection;
+                          final newText = text.replaceRange(
+                            selection.start,
+                            selection.end,
+                            '\n',
+                          );
+                          _messageController.value = _messageController.value
+                              .copyWith(
+                                text: newText,
+                                selection: TextSelection.collapsed(
+                                  offset: selection.start + 1,
+                                ),
+                              );
                           return KeyEventResult
                               .handled; // 이벤트 처리 완료, TextField의 기본 동작 막음
                         } else {
