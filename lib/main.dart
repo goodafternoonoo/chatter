@@ -20,7 +20,9 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeModeProvider()),
-        ChangeNotifierProvider(create: (context) => ChatProvider()),
+        ChangeNotifierProvider(
+          create: (context) => ChatProvider()..initialize(),
+        ),
       ],
       child: const MyApp(),
     ),
