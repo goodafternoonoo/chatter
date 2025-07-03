@@ -26,15 +26,6 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     _scrollController.addListener(_scrollListener);
     _messageController.addListener(_onMessageChanged);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final chatProvider = context.read<ChatProvider>();
-      if (chatProvider.isInitialized && chatProvider.shouldShowNicknameDialog) {
-        if (mounted) { // Add mounted check here
-          _showNicknameDialog();
-        }
-      }
-    });
   }
 
   @override
@@ -94,51 +85,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Future<void> _showNicknameDialog() async {
-    final chatProvider = context.read<ChatProvider>();
-    String newNickname = chatProvider.currentNickname;
-
-    // Capture context before the async gap
-    final currentContext = context;
-
-    await showDialog<String>(
-      context: currentContext, // Use the captured context
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) { // This is the context for the AlertDialog's builder
-        return AlertDialog(
-          title: const Text('닉네임 설정'),
-          content: TextField(
-            onChanged: (value) => newNickname = value,
-            controller: TextEditingController(text: newNickname),
-            decoration: const InputDecoration(hintText: '닉네임을 입력하세요'),
-            autofocus: true, // Add autofocus for better UX
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('저장'),
-              onPressed: () async {
-                if (newNickname.trim().isNotEmpty) {
-                  await chatProvider.saveNickname(newNickname.trim());
-                  if (dialogContext.mounted) {
-                    Navigator.of(dialogContext).pop();
-                  }
-                } else {
-                  final localScaffoldMessenger = ScaffoldMessenger.of(dialogContext);
-                  final localThemeColorSchemeError = Theme.of(dialogContext).colorScheme.error;
-                  localScaffoldMessenger.showSnackBar(
-                    SnackBar(
-                      content: const Text('닉네임을 입력해주세요.'),
-                      backgroundColor: localThemeColorSchemeError,
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -157,11 +104,6 @@ class _ChatPageState extends State<ChatPage> {
             ),
             onPressed: themeModeProvider.toggleTheme,
             tooltip: '테마 전환',
-          ),
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => _showNicknameDialog(),
-            tooltip: '닉네임 설정',
           ),
         ],
       ),

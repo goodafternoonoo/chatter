@@ -4,9 +4,9 @@ import 'package:my_chat_app/themes/app_themes.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-import 'screens/chat_page.dart';
 import 'models/theme_mode_provider.dart';
 import 'providers/chat_provider.dart'; // ChatProvider 임포트
+import 'package:my_chat_app/screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
       themeMode: themeMode,
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
-      home: ChatPage(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: true,
     );
   }
