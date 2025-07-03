@@ -85,12 +85,9 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  
-
   @override
   Widget build(BuildContext context) {
     final themeModeProvider = context.watch<ThemeModeProvider>();
-    final chatProvider = context.watch<ChatProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -115,7 +112,8 @@ class _ChatPageState extends State<ChatPage> {
                 if (chatProvider.error != null) {
                   return Center(child: Text('오류: ${chatProvider.error}'));
                 }
-                if (!chatProvider.isInitialized || chatProvider.messagesStream == null) {
+                if (!chatProvider.isInitialized ||
+                    chatProvider.messagesStream == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 return StreamBuilder<List<Message>>(
@@ -124,7 +122,8 @@ class _ChatPageState extends State<ChatPage> {
                     if (snapshot.hasError) {
                       return Center(child: Text('에러: ${snapshot.error}'));
                     }
-                    if (!snapshot.hasData || chatProvider.myLocalUserId == null) {
+                    if (!snapshot.hasData ||
+                        chatProvider.myLocalUserId == null) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     final messages = snapshot.data!;
@@ -170,9 +169,9 @@ class _ChatPageState extends State<ChatPage> {
                             HardwareKeyboard.instance.logicalKeysPressed;
                         final bool isModifierPressed =
                             pressed.contains(LogicalKeyboardKey.controlLeft) ||
-                                pressed.contains(LogicalKeyboardKey.controlRight) ||
-                                pressed.contains(LogicalKeyboardKey.shiftLeft) ||
-                                pressed.contains(LogicalKeyboardKey.shiftRight);
+                            pressed.contains(LogicalKeyboardKey.controlRight) ||
+                            pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                            pressed.contains(LogicalKeyboardKey.shiftRight);
 
                         if (isModifierPressed) {
                           final currentVal = _messageController.value;
