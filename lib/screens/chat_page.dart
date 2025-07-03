@@ -29,8 +29,10 @@ class _ChatPageState extends State<ChatPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final chatProvider = context.read<ChatProvider>();
-      if (chatProvider.currentNickname == '익명') {
-        _showNicknameDialog();
+      if (chatProvider.isInitialized && chatProvider.shouldShowNicknameDialog) {
+        if (mounted) { // Add mounted check here
+          _showNicknameDialog();
+        }
       }
     });
   }
@@ -43,6 +45,8 @@ class _ChatPageState extends State<ChatPage> {
     _messageController.dispose();
     super.dispose();
   }
+
+  // _onProviderInit method removed
 
   void _scrollListener() {
     if (_scrollController.position.pixels <
@@ -73,15 +77,18 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _sendMessage() async {
     final chatProvider = context.read<ChatProvider>();
+    // Call ScaffoldMessenger.of(context) before the await
+    final messenger = ScaffoldMessenger.of(context);
+    final theme = Theme.of(context);
     try {
       await chatProvider.sendMessage(_messageController.text);
       _messageController.clear();
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      // Use the captured messenger
+      messenger.showSnackBar(
         SnackBar(
           content: const Text('메시지 전송에 실패했습니다.'),
-          backgroundColor: Theme.of(context).colorScheme.error,
+          backgroundColor: theme.colorScheme.error,
         ),
       );
     }
@@ -91,16 +98,20 @@ class _ChatPageState extends State<ChatPage> {
     final chatProvider = context.read<ChatProvider>();
     String newNickname = chatProvider.currentNickname;
 
+    // Capture context before the async gap
+    final currentContext = context;
+
     await showDialog<String>(
-      context: context,
+      context: currentContext, // Use the captured context
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) { // This is the context for the AlertDialog's builder
         return AlertDialog(
           title: const Text('닉네임 설정'),
           content: TextField(
             onChanged: (value) => newNickname = value,
             controller: TextEditingController(text: newNickname),
             decoration: const InputDecoration(hintText: '닉네임을 입력하세요'),
+            autofocus: true, // Add autofocus for better UX
           ),
           actions: <Widget>[
             TextButton(
@@ -108,12 +119,16 @@ class _ChatPageState extends State<ChatPage> {
               onPressed: () async {
                 if (newNickname.trim().isNotEmpty) {
                   await chatProvider.saveNickname(newNickname.trim());
-                  if (mounted) Navigator.of(context).pop();
+                  if (dialogContext.mounted) {
+                    Navigator.of(dialogContext).pop();
+                  }
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  final localScaffoldMessenger = ScaffoldMessenger.of(dialogContext);
+                  final localThemeColorSchemeError = Theme.of(dialogContext).colorScheme.error;
+                  localScaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: const Text('닉네임을 입력해주세요.'),
-                      backgroundColor: Theme.of(context).colorScheme.error,
+                      backgroundColor: localThemeColorSchemeError,
                     ),
                   );
                 }
@@ -145,7 +160,7 @@ class _ChatPageState extends State<ChatPage> {
           ),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            onPressed: _showNicknameDialog,
+            onPressed: () => _showNicknameDialog(),
             tooltip: '닉네임 설정',
           ),
         ],

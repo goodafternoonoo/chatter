@@ -12,23 +12,28 @@ class ChatProvider with ChangeNotifier {
   late final Stream<List<Message>> messagesStream;
   String _currentNickname = '익명';
   String? _myLocalUserId;
+  bool _isInitialized = false; // Add this
 
   String get currentNickname => _currentNickname;
   String? get myLocalUserId => _myLocalUserId;
+  bool get isInitialized => _isInitialized; // Add this
+  bool get shouldShowNicknameDialog => _isInitialized && _currentNickname == '익명'; // Add this
 
   ChatProvider() {
     _initialize();
   }
 
-  void _initialize() {
+  Future<void> _initialize() async {
     messagesStream = _supabase
         .from(_messagesTableName)
         .stream(primaryKey: ['id'])
         .order('created_at', ascending: true)
         .map((data) => data.map((item) => Message.fromJson(item)).toList());
 
-    _loadLocalUserId();
-    _loadNickname();
+    await _loadLocalUserId(); // Await these calls
+    await _loadNickname();    // Await these calls
+    _isInitialized = true; // Set to true after loading
+    notifyListeners();
   }
 
   Future<void> _loadLocalUserId() async {
@@ -38,7 +43,6 @@ class ChatProvider with ChangeNotifier {
       _myLocalUserId = const Uuid().v4();
       await prefs.setString('local_user_id', _myLocalUserId!);
     }
-    notifyListeners();
   }
 
   Future<void> _loadNickname() async {
@@ -47,7 +51,6 @@ class ChatProvider with ChangeNotifier {
     if (savedNickname != null && savedNickname.isNotEmpty) {
       _currentNickname = savedNickname;
     }
-    notifyListeners();
   }
 
   Future<void> saveNickname(String nickname) async {

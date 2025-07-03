@@ -55,7 +55,7 @@ class ChatMessage extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isMe
                     ? Theme.of(context).colorScheme.primaryContainer
-                    : Theme.of(context).colorScheme.surfaceVariant,
+                    : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(12),
                   topRight: const Radius.circular(12),
@@ -64,7 +64,7 @@ class ChatMessage extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
+                    color: Theme.of(context).colorScheme.shadow.withAlpha(25), // withOpacity(0.1)
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -89,8 +89,8 @@ class ChatMessage extends StatelessWidget {
                         createdAt,
                         style: Theme.of(context).textTheme.labelSmall!.copyWith(
                               color: isMe
-                                  ? Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.7)
-                                  : Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer.withAlpha(178) // withOpacity(0.7)
+                                  : Theme.of(context).colorScheme.onSurfaceVariant.withAlpha(178), // withOpacity(0.7)
                             ),
                       ),
                     ],
