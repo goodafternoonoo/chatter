@@ -168,38 +168,48 @@ class _ChatPageState extends State<ChatPage> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<Message>>(
-              stream: chatProvider.messagesStream,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Center(child: Text('에러: ${snapshot.error}'));
+            child: Consumer<ChatProvider>(
+              builder: (context, chatProvider, child) {
+                if (chatProvider.error != null) {
+                  return Center(child: Text('오류: ${chatProvider.error}'));
                 }
-                if (!snapshot.hasData || chatProvider.myLocalUserId == null) {
+                if (!chatProvider.isInitialized || chatProvider.messagesStream == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final messages = snapshot.data!;
+                return StreamBuilder<List<Message>>(
+                  stream: chatProvider.messagesStream!,
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(child: Text('에러: ${snapshot.error}'));
+                    }
+                    if (!snapshot.hasData || chatProvider.myLocalUserId == null) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final messages = snapshot.data!;
 
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  if (!_scrollController.hasClients) return;
-                  if (_isInitialLoad && messages.isNotEmpty) {
-                    _scrollController.jumpTo(
-                      _scrollController.position.maxScrollExtent,
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!_scrollController.hasClients) return;
+                      if (_isInitialLoad && messages.isNotEmpty) {
+                        _scrollController.jumpTo(
+                          _scrollController.position.maxScrollExtent,
+                        );
+                        setState(() => _isInitialLoad = false);
+                      } else if (_scrollController.position.pixels >=
+                          _scrollController.position.maxScrollExtent - 100) {
+                        _scrollToBottom();
+                      }
+                    });
+
+                    return ListView.builder(
+                      controller: _scrollController,
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        final isMe =
+                            message.localUserId == chatProvider.myLocalUserId;
+                        return ChatMessage(message: message, isMe: isMe);
+                      },
                     );
-                    setState(() => _isInitialLoad = false);
-                  } else if (_scrollController.position.pixels >=
-                      _scrollController.position.maxScrollExtent - 100) {
-                    _scrollToBottom();
-                  }
-                });
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMe =
-                        message.localUserId == chatProvider.myLocalUserId;
-                    return ChatMessage(message: message, isMe: isMe);
                   },
                 );
               },
@@ -218,9 +228,9 @@ class _ChatPageState extends State<ChatPage> {
                             HardwareKeyboard.instance.logicalKeysPressed;
                         final bool isModifierPressed =
                             pressed.contains(LogicalKeyboardKey.controlLeft) ||
-                            pressed.contains(LogicalKeyboardKey.controlRight) ||
-                            pressed.contains(LogicalKeyboardKey.shiftLeft) ||
-                            pressed.contains(LogicalKeyboardKey.shiftRight);
+                                pressed.contains(LogicalKeyboardKey.controlRight) ||
+                                pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                                pressed.contains(LogicalKeyboardKey.shiftRight);
 
                         if (isModifierPressed) {
                           final currentVal = _messageController.value;
