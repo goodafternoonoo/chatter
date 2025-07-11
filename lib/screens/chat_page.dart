@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/chat_message.dart';
@@ -7,6 +8,7 @@ import 'package:my_chat_app/models/theme_mode_provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
 
 import 'package:my_chat_app/utils/error_utils.dart';
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -71,6 +73,7 @@ class _ChatPageState extends State<ChatPage> {
     try {
       await chatProvider.sendMessage(_messageController.text);
       _messageController.clear();
+      FocusScope.of(context).unfocus(); // 키보드 닫기
     } catch (e, s) {
       if (mounted) showErrorSnackBar(context, e, s);
     }
@@ -111,7 +114,29 @@ class _ChatPageState extends State<ChatPage> {
                   stream: chatProvider.messagesStream!,
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      return Center(child: Text('에러: ${snapshot.error}'));
+                      // Use error_utils to show a SnackBar and log the error
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        showErrorMessage(
+                          context,
+                          '실시간 메시지 로딩 중 오류 발생: ${snapshot.error}',
+                        );
+                      });
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('메시지를 불러오는 데 실패했습니다.'),
+                            const SizedBox(height: UIConstants.spacingMedium),
+                            ElevatedButton(
+                              onPressed: () {
+                                chatProvider
+                                    .initialize(); // Re-initialize the stream
+                              },
+                              child: const Text('재시도'),
+                            ),
+                          ],
+                        ),
+                      );
                     }
                     if (!snapshot.hasData ||
                         chatProvider.myLocalUserId == null) {
@@ -121,14 +146,15 @@ class _ChatPageState extends State<ChatPage> {
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (!_scrollController.hasClients) return;
-                      if (_isInitialLoad && messages.isNotEmpty) {
-                        _scrollController.jumpTo(
-                          _scrollController.position.maxScrollExtent,
-                        );
-                        setState(() => _isInitialLoad = false);
-                      } else if (_scrollController.position.pixels >=
-                          _scrollController.position.maxScrollExtent - 100) {
+                      // 사용자가 수동으로 스크롤 중이 아닐 때만 자동 스크롤
+                      if (_scrollController.position.userScrollDirection ==
+                              ScrollDirection.idle &&
+                          (_isInitialLoad ||
+                              _scrollController.position.pixels >=
+                                  _scrollController.position.maxScrollExtent -
+                                      100)) {
                         _scrollToBottom();
+                        setState(() => _isInitialLoad = false);
                       }
                     });
 
@@ -148,7 +174,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(UIConstants.spacingMedium),
             child: Row(
               children: [
                 Expanded(
@@ -188,8 +214,8 @@ class _ChatPageState extends State<ChatPage> {
                       decoration: const InputDecoration(
                         hintText: '메시지를 입력하세요',
                         contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+                          horizontal: UIConstants.messageInputHorizontalPadding,
+                          vertical: UIConstants.messageInputVerticalPadding,
                         ),
                       ),
                       keyboardType: TextInputType.multiline,

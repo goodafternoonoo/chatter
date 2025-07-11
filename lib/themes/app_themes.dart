@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class AppThemes {
   static ThemeData get lightTheme {
@@ -12,26 +13,26 @@ class AppThemes {
         foregroundColor: Colors.white,
         titleTextStyle: TextStyle(
           color: Colors.white,
-          fontSize: 20,
+          fontSize: UIConstants.appBarTitleFontSize,
           fontWeight: FontWeight.bold,
         ),
       ),
       textTheme: const TextTheme(
-        bodyLarge: TextStyle(fontSize: 16),
-        bodyMedium: TextStyle(fontSize: 14),
-        bodySmall: TextStyle(fontSize: 12),
-        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        labelMedium: TextStyle(fontSize: 12),
-        labelSmall: TextStyle(fontSize: 10),
+        bodyLarge: TextStyle(fontSize: UIConstants.fontSizeLarge),
+        bodyMedium: TextStyle(fontSize: UIConstants.fontSizeMedium),
+        bodySmall: TextStyle(fontSize: UIConstants.fontSizeSmall),
+        labelLarge: TextStyle(fontSize: UIConstants.fontSizeMedium, fontWeight: FontWeight.bold),
+        labelMedium: TextStyle(fontSize: UIConstants.fontSizeSmall),
+        labelSmall: TextStyle(fontSize: UIConstants.fontSizeXSmall),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.grey[100],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(25.0),
+          borderRadius: BorderRadius.circular(UIConstants.borderRadiusCircular),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: UIConstants.messageInputHorizontalPadding, vertical: UIConstants.messageInputVerticalPadding),
         hintStyle: TextStyle(color: Colors.grey[600]),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
@@ -54,26 +55,26 @@ class AppThemes {
         foregroundColor: Colors.white,
         titleTextStyle: const TextStyle(
           color: Colors.white,
-          fontSize: 20,
+          fontSize: UIConstants.appBarTitleFontSize,
           fontWeight: FontWeight.bold,
         ),
       ),
       textTheme: const TextTheme(
-        bodyLarge: TextStyle(fontSize: 16),
-        bodyMedium: TextStyle(fontSize: 14),
-        bodySmall: TextStyle(fontSize: 12),
-        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-        labelMedium: TextStyle(fontSize: 12),
-        labelSmall: TextStyle(fontSize: 10),
+        bodyLarge: TextStyle(fontSize: UIConstants.fontSizeLarge),
+        bodyMedium: TextStyle(fontSize: UIConstants.fontSizeMedium),
+        bodySmall: TextStyle(fontSize: UIConstants.fontSizeSmall),
+        labelLarge: TextStyle(fontSize: UIConstants.fontSizeMedium, fontWeight: FontWeight.bold),
+        labelMedium: TextStyle(fontSize: UIConstants.fontSizeSmall),
+        labelSmall: TextStyle(fontSize: UIConstants.fontSizeXSmall),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.grey[800],
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(25.0),
+          borderRadius: BorderRadius.circular(UIConstants.borderRadiusCircular),
           borderSide: BorderSide.none,
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(horizontal: UIConstants.messageInputHorizontalPadding, vertical: UIConstants.messageInputVerticalPadding),
         hintStyle: TextStyle(color: Colors.grey[400]),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(

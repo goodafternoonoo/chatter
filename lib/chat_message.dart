@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'models/message.dart';
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class ChatMessage extends StatelessWidget {
   const ChatMessage({
@@ -20,9 +21,9 @@ class ChatMessage extends StatelessWidget {
     if (timestamp.isAfter(today)) {
       return DateFormat('a h:mm', 'ko-KR').format(timestamp);
     } else if (timestamp.isAfter(yesterday)) {
-      return DateFormat('어제 a h:mm', 'ko_KR').format(timestamp);
+      return DateFormat('어제 a h:mm', 'ko-KR').format(timestamp);
     } else {
-      return DateFormat('yyyy년 M월 d일 a h:mm', 'ko_KR').format(timestamp);
+      return DateFormat('yyyy년 M월 d일 a h:mm', 'ko-KR').format(timestamp);
     }
   }
 
@@ -30,14 +31,14 @@ class ChatMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     final createdAt = _formatTimestamp(message.createdAt);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: UIConstants.spacingSmall, horizontal: UIConstants.spacingMedium),
       child: Row(
         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
             CircleAvatar(
-              radius: 18,
+              radius: UIConstants.avatarRadius,
               backgroundColor: Colors.grey[400],
               child: Text(
                 message.sender.isNotEmpty ? message.sender[0] : '?',
@@ -47,26 +48,26 @@ class ChatMessage extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: UIConstants.spacingMedium),
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              padding: const EdgeInsets.symmetric(vertical: UIConstants.chatBubbleVerticalPadding, horizontal: UIConstants.chatBubbleHorizontalPadding),
               decoration: BoxDecoration(
                 color: isMe
                     ? Theme.of(context).colorScheme.primaryContainer
                     : Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(12),
-                  topRight: const Radius.circular(12),
-                  bottomLeft: isMe ? const Radius.circular(12) : const Radius.circular(4),
-                  bottomRight: isMe ? const Radius.circular(4) : const Radius.circular(12),
+                  topLeft: const Radius.circular(UIConstants.borderRadiusChatBubble),
+                  topRight: const Radius.circular(UIConstants.borderRadiusChatBubble),
+                  bottomLeft: isMe ? const Radius.circular(UIConstants.borderRadiusChatBubble) : const Radius.circular(UIConstants.borderRadiusChatBubbleSmall),
+                  bottomRight: isMe ? const Radius.circular(UIConstants.borderRadiusChatBubbleSmall) : const Radius.circular(UIConstants.borderRadiusChatBubble),
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Theme.of(context).colorScheme.shadow.withAlpha(25), // withOpacity(0.1)
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    blurRadius: UIConstants.spacingSmall,
+                    offset: const Offset(0, UIConstants.spacingSmall / 2),
                   ),
                 ],
               ),
@@ -84,7 +85,7 @@ class ChatMessage extends StatelessWidget {
                                   : Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: UIConstants.spacingMedium),
                       Text(
                         createdAt,
                         style: Theme.of(context).textTheme.labelSmall!.copyWith(
@@ -95,7 +96,7 @@ class ChatMessage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: UIConstants.spacingSmall),
                   Text(
                     message.content,
                     style: Theme.of(context).textTheme.bodyMedium!.copyWith(
@@ -109,9 +110,9 @@ class ChatMessage extends StatelessWidget {
             ),
           ),
           if (isMe) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: UIConstants.spacingMedium),
             CircleAvatar(
-              radius: 18,
+              radius: UIConstants.avatarRadius,
               backgroundColor: Theme.of(context).colorScheme.primary,
               child: Text(
                 message.sender.isNotEmpty ? message.sender[0] : '?',

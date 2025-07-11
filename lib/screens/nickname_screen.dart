@@ -4,6 +4,7 @@ import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/screens/chat_page.dart';
 
 import 'package:my_chat_app/utils/error_utils.dart';
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key});
@@ -43,7 +44,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('닉네임 설정')),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(UIConstants.paddingMedium),
         child: Form(
           key: _formKey,
           child: Column(
@@ -63,13 +64,13 @@ class _NicknameScreenState extends State<NicknameScreen> {
                   if (value.trim().length < 2 || value.trim().length > 10) {
                     return '닉네임은 2자 이상 10자 이하로 입력해주세요.';
                   }
-                  if (RegExp(r'[\s!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                  if (RegExp(r'[\s!@#\$%^&*(),.?":{}|<>]+').hasMatch(value)) {
                     return '닉네임에 공백이나 특수문자를 사용할 수 없습니다.';
                   }
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: UIConstants.spacingMedium * 2.5), // 20.0
               ElevatedButton(
                 onPressed: _saveNickname,
                 child: const Text('채팅 시작하기'),

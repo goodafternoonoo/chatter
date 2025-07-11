@@ -4,10 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/message.dart';
+import 'package:my_chat_app/constants/app_constants.dart';
 
 class ChatProvider with ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
-  final String _messagesTableName = 'messages';
 
   Stream<List<Message>>? _messagesStream;
   String _currentNickname = '익명';
@@ -27,7 +27,7 @@ class ChatProvider with ChangeNotifier {
   Future<void> initialize() async {
     try {
       _messagesStream = _supabase
-          .from(_messagesTableName)
+          .from(AppConstants.messagesTableName)
           .stream(primaryKey: ['id'])
           .order('created_at', ascending: true)
           .map((data) => data.map((item) => Message.fromJson(item)).toList());
@@ -38,9 +38,6 @@ class ChatProvider with ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = '초기화에 실패했습니다: $e';
-      if (kDebugMode) {
-        print(_error);
-      }
     } finally {
       notifyListeners();
     }
@@ -56,9 +53,6 @@ class ChatProvider with ChangeNotifier {
       }
     } catch (e) {
       _error = '로컬 사용자 ID 로딩에 실패했습니다: $e';
-      if (kDebugMode) {
-        print(_error);
-      }
       rethrow;
     }
   }
@@ -72,9 +66,6 @@ class ChatProvider with ChangeNotifier {
       }
     } catch (e) {
       _error = '닉네임 로딩에 실패했습니다: $e';
-      if (kDebugMode) {
-        print(_error);
-      }
       rethrow;
     }
   }
@@ -88,9 +79,6 @@ class ChatProvider with ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = '닉네임 저장에 실패했습니다: $e';
-      if (kDebugMode) {
-        print(_error);
-      }
       rethrow;
     } finally {
       notifyListeners();
@@ -101,7 +89,7 @@ class ChatProvider with ChangeNotifier {
     if (content.trim().isEmpty || _myLocalUserId == null) return;
 
     try {
-      await _supabase.from(_messagesTableName).insert({
+      await _supabase.from(AppConstants.messagesTableName).insert({
         'content': content.trim(),
         'sender': _currentNickname,
         'local_user_id': _myLocalUserId,
