@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
@@ -46,7 +47,12 @@ class _SplashScreenState extends State<SplashScreen> {
             MaterialPageRoute(builder: (context) => const NicknameScreen()),
           );
         }
-      } catch (e) {
+      } catch (e, stackTrace) {
+        // 디버그 콘솔에 항상 로그 출력
+        if (kDebugMode) {
+          print('SplashScreen에서 오류 발생: $e');
+          print(stackTrace);
+        }
         if (mounted) {
           setState(() {
             _hasError = true;

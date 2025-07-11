@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -73,7 +74,11 @@ class _ChatPageState extends State<ChatPage> {
     try {
       await chatProvider.sendMessage(_messageController.text);
       _messageController.clear();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('메시지 전송 실패: $e');
+        print(stackTrace);
+      }
       messenger.showSnackBar(
         SnackBar(
           content: Text('메시지 전송 실패: ${e.toString()}'),

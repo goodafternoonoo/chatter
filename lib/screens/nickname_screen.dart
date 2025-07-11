@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
@@ -32,7 +33,11 @@ class _NicknameScreenState extends State<NicknameScreen> {
         navigator.pushReplacement(
           MaterialPageRoute(builder: (context) => const ChatPage()),
         );
-      } catch (e) {
+      } catch (e, stackTrace) {
+        if (kDebugMode) {
+          print('닉네임 저장 실패: $e');
+          print(stackTrace);
+        }
         messenger.showSnackBar(
           SnackBar(
             content: Text('닉네임 저장 실패: ${e.toString()}'),
