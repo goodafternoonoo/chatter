@@ -6,9 +6,9 @@ import 'package:my_chat_app/chat_message.dart';
 import 'package:my_chat_app/models/message.dart';
 import 'package:my_chat_app/models/theme_mode_provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
-
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
+import 'package:my_chat_app/mixins/scroll_controller_mixin.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -17,55 +17,30 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage>
+    with ScrollControllerMixin<ChatPage> {
   final _messageController = TextEditingController();
-  final _scrollController = ScrollController();
 
-  bool _showScrollToBottomButton = false;
   bool _isInitialLoad = true;
   bool _isMessageEmpty = true;
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_scrollListener);
     _messageController.addListener(_onMessageChanged);
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
     _messageController.removeListener(_onMessageChanged);
     _messageController.dispose();
     super.dispose();
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.pixels <
-        _scrollController.position.maxScrollExtent) {
-      if (!_showScrollToBottomButton) {
-        setState(() => _showScrollToBottomButton = true);
-      }
-    } else {
-      if (_showScrollToBottomButton) {
-        setState(() => _showScrollToBottomButton = false);
-      }
-    }
   }
 
   void _onMessageChanged() {
     setState(() {
       _isMessageEmpty = _messageController.text.trim().isEmpty;
     });
-  }
-
-  void _scrollToBottom() {
-    _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
   }
 
   Future<void> _sendMessage() async {
@@ -145,21 +120,21 @@ class _ChatPageState extends State<ChatPage> {
                     final messages = snapshot.data!;
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (!_scrollController.hasClients) return;
+                      if (!scrollController.hasClients) return;
                       // 사용자가 수동으로 스크롤 중이 아닐 때만 자동 스크롤
-                      if (_scrollController.position.userScrollDirection ==
+                      if (scrollController.position.userScrollDirection ==
                               ScrollDirection.idle &&
                           (_isInitialLoad ||
-                              _scrollController.position.pixels >=
-                                  _scrollController.position.maxScrollExtent -
+                              scrollController.position.pixels >=
+                                  scrollController.position.maxScrollExtent -
                                       100)) {
-                        _scrollToBottom();
+                        scrollToBottom();
                         setState(() => _isInitialLoad = false);
                       }
                     });
 
                     return ListView.builder(
-                      controller: _scrollController,
+                      controller: scrollController,
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final message = messages[index];
@@ -232,9 +207,9 @@ class _ChatPageState extends State<ChatPage> {
           ),
         ],
       ),
-      floatingActionButton: _showScrollToBottomButton
+      floatingActionButton: showScrollToBottomButton
           ? FloatingActionButton(
-              onPressed: _scrollToBottom,
+              onPressed: scrollToBottom,
               child: const Icon(Icons.arrow_downward),
             )
           : null,
