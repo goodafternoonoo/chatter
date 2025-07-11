@@ -9,29 +9,29 @@ import 'package:my_chat_app/constants/app_constants.dart';
 class ChatProvider with ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Stream<List<Message>>? _messagesStream;
+  late final Stream<List<Message>> messagesStream;
   String _currentNickname = AppConstants.defaultNickname;
   String? _myLocalUserId;
   bool _isInitialized = false;
   String? _error;
 
-  Stream<List<Message>>? get messagesStream => _messagesStream;
   String get currentNickname => _currentNickname;
   String? get myLocalUserId => _myLocalUserId;
   bool get isInitialized => _isInitialized;
   String? get error => _error;
-  bool get shouldShowNicknameDialog => _isInitialized && _currentNickname == AppConstants.defaultNickname;
+  bool get shouldShowNicknameDialog =>
+      _isInitialized && _currentNickname == AppConstants.defaultNickname;
 
-  ChatProvider();
+  ChatProvider() {
+    messagesStream = _supabase
+        .from(AppConstants.messagesTableName)
+        .stream(primaryKey: ['id'])
+        .order('created_at', ascending: true)
+        .map((data) => data.map((item) => Message.fromJson(item)).toList());
+  }
 
   Future<void> initialize() async {
     try {
-      _messagesStream = _supabase
-          .from(AppConstants.messagesTableName)
-          .stream(primaryKey: ['id'])
-          .order('created_at', ascending: true)
-          .map((data) => data.map((item) => Message.fromJson(item)).toList());
-
       await _loadLocalUserId();
       await _loadNickname();
       _isInitialized = true;

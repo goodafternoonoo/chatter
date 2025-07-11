@@ -107,12 +107,11 @@ class _ChatPageState extends State<ChatPage> {
                 if (chatProvider.error != null) {
                   return Center(child: Text('오류: ${chatProvider.error}'));
                 }
-                if (!chatProvider.isInitialized ||
-                    chatProvider.messagesStream == null) {
+                if (!chatProvider.isInitialized) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 return StreamBuilder<List<Message>>(
-                  stream: chatProvider.messagesStream!,
+                  stream: chatProvider.messagesStream,
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
                       // Use error_utils to show a SnackBar and log the error
