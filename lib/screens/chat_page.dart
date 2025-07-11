@@ -72,6 +72,7 @@ class _ChatPageState extends State<ChatPage> {
     final chatProvider = context.read<ChatProvider>();
     try {
       await chatProvider.sendMessage(_messageController.text);
+      if (!mounted) return;
       _messageController.clear();
       FocusScope.of(context).unfocus(); // 키보드 닫기
     } catch (e, s) {
