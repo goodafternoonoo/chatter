@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +5,8 @@ import 'package:my_chat_app/chat_message.dart';
 import 'package:my_chat_app/models/message.dart';
 import 'package:my_chat_app/models/theme_mode_provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
+
+import 'package:my_chat_app/utils/error_utils.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -38,8 +39,6 @@ class _ChatPageState extends State<ChatPage> {
     super.dispose();
   }
 
-  // _onProviderInit method removed
-
   void _scrollListener() {
     if (_scrollController.position.pixels <
         _scrollController.position.maxScrollExtent) {
@@ -69,22 +68,11 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _sendMessage() async {
     final chatProvider = context.read<ChatProvider>();
-    final messenger = ScaffoldMessenger.of(context);
-    final theme = Theme.of(context);
     try {
       await chatProvider.sendMessage(_messageController.text);
       _messageController.clear();
-    } catch (e, stackTrace) {
-      if (kDebugMode) {
-        print('메시지 전송 실패: $e');
-        print(stackTrace);
-      }
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('메시지 전송 실패: ${e.toString()}'),
-          backgroundColor: theme.colorScheme.error,
-        ),
-      );
+    } catch (e, s) {
+      if (mounted) showErrorSnackBar(context, e, s);
     }
   }
 

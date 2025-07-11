@@ -6,6 +6,7 @@ import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/screens/chat_page.dart';
 import 'package:my_chat_app/screens/nickname_screen.dart';
 
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -27,7 +28,6 @@ class _SplashScreenState extends State<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final chatProvider = context.read<ChatProvider>();
       try {
-        // ChatProvider가 초기화될 때까지 기다림
         if (!chatProvider.isInitialized) {
           await Future.delayed(const Duration(milliseconds: 500));
         }
@@ -47,16 +47,15 @@ class _SplashScreenState extends State<SplashScreen> {
             MaterialPageRoute(builder: (context) => const NicknameScreen()),
           );
         }
-      } catch (e, stackTrace) {
-        // 디버그 콘솔에 항상 로그 출력
+      } catch (e, s) {
         if (kDebugMode) {
-          print('SplashScreen에서 오류 발생: $e');
-          print(stackTrace);
+          print('초기화 오류: $e');
+          print(s);
         }
         if (mounted) {
           setState(() {
             _hasError = true;
-            _errorMessage = '초기화 오류: ${e.toString()}';
+            _errorMessage = e.toString();
           });
         }
       }

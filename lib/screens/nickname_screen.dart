@@ -1,9 +1,9 @@
-
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/screens/chat_page.dart';
+
+import 'package:my_chat_app/utils/error_utils.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key});
@@ -25,7 +25,6 @@ class _NicknameScreenState extends State<NicknameScreen> {
   Future<void> _saveNickname() async {
     if (_formKey.currentState!.validate()) {
       final chatProvider = context.read<ChatProvider>();
-      final messenger = ScaffoldMessenger.of(context);
       final navigator = Navigator.of(context);
 
       try {
@@ -33,17 +32,8 @@ class _NicknameScreenState extends State<NicknameScreen> {
         navigator.pushReplacement(
           MaterialPageRoute(builder: (context) => const ChatPage()),
         );
-      } catch (e, stackTrace) {
-        if (kDebugMode) {
-          print('닉네임 저장 실패: $e');
-          print(stackTrace);
-        }
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('닉네임 저장 실패: ${e.toString()}'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+      } catch (e, s) {
+        if (mounted) showErrorSnackBar(context, e, s);
       }
     }
   }
@@ -51,9 +41,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('닉네임 설정'),
-      ),
+      appBar: AppBar(title: const Text('닉네임 설정')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -71,6 +59,12 @@ class _NicknameScreenState extends State<NicknameScreen> {
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return '닉네임을 입력해주세요.';
+                  }
+                  if (value.trim().length < 2 || value.trim().length > 10) {
+                    return '닉네임은 2자 이상 10자 이하로 입력해주세요.';
+                  }
+                  if (RegExp(r'[\s!@#\$%^&*(),.?":{}|<>]').hasMatch(value)) {
+                    return '닉네임에 공백이나 특수문자를 사용할 수 없습니다.';
                   }
                   return null;
                 },
