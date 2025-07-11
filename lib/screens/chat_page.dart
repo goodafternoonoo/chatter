@@ -68,17 +68,15 @@ class _ChatPageState extends State<ChatPage> {
 
   Future<void> _sendMessage() async {
     final chatProvider = context.read<ChatProvider>();
-    // Call ScaffoldMessenger.of(context) before the await
     final messenger = ScaffoldMessenger.of(context);
     final theme = Theme.of(context);
     try {
       await chatProvider.sendMessage(_messageController.text);
       _messageController.clear();
     } catch (e) {
-      // Use the captured messenger
       messenger.showSnackBar(
         SnackBar(
-          content: const Text('메시지 전송에 실패했습니다.'),
+          content: Text('메시지 전송 실패: ${e.toString()}'),
           backgroundColor: theme.colorScheme.error,
         ),
       );

@@ -35,7 +35,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
       } catch (e) {
         messenger.showSnackBar(
           SnackBar(
-            content: Text('닉네임 저장에 실패했습니다: $e'),
+            content: Text('닉네임 저장 실패: ${e.toString()}'),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
