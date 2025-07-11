@@ -10,7 +10,7 @@ class ChatProvider with ChangeNotifier {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   Stream<List<Message>>? _messagesStream;
-  String _currentNickname = '익명';
+  String _currentNickname = AppConstants.defaultNickname;
   String? _myLocalUserId;
   bool _isInitialized = false;
   String? _error;
@@ -20,7 +20,7 @@ class ChatProvider with ChangeNotifier {
   String? get myLocalUserId => _myLocalUserId;
   bool get isInitialized => _isInitialized;
   String? get error => _error;
-  bool get shouldShowNicknameDialog => _isInitialized && _currentNickname == '익명';
+  bool get shouldShowNicknameDialog => _isInitialized && _currentNickname == AppConstants.defaultNickname;
 
   ChatProvider();
 
