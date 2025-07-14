@@ -4,6 +4,7 @@ import 'package:my_chat_app/screens/chat_page.dart';
 import 'package:my_chat_app/models/room.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
+import 'package:my_chat_app/screens/nickname_screen.dart';
 
 class RoomListScreen extends StatefulWidget {
   const RoomListScreen({super.key});
@@ -93,6 +94,22 @@ class _RoomListScreenState extends State<RoomListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('채팅방 목록'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: '닉네임 수정',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => ChangeNotifierProvider(
+                    create: (_) => ChatProvider(roomId: '')..initialize(), // 임시 ChatProvider
+                    child: const NicknameScreen(),
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [

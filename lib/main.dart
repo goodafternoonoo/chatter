@@ -43,7 +43,9 @@ class MyApp extends StatelessWidget {
       darkTheme: AppThemes.darkTheme,
       home: ChangeNotifierProvider(
         create: (_) => ChatProvider(roomId: '')..initialize(), // 임시 Provider
-        child: const SplashScreen(),
+        builder: (context, child) {
+          return const SplashScreen();
+        },
       ),
       debugShowCheckedModeBanner: true,
     );

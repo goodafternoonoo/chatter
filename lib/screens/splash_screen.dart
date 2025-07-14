@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -38,16 +37,22 @@ class _SplashScreenState extends State<SplashScreen> {
         }
 
         if (chatProvider.shouldShowNicknameDialog) {
-        // 닉네임이 설정되지 않았으면 닉네임 설정 화면으로 이동
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const NicknameScreen()),
-        );
-      } else {
-        // 닉네임이 설정되었으면 채팅방 목록 화면으로 이동
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const RoomListScreen()),
-        );
-      }
+          // 닉네임이 설정되지 않았으면 닉네임 설정 화면으로 이동
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider(
+                create: (_) =>
+                    ChatProvider(roomId: '')..initialize(), // 임시 ChatProvider
+                child: const NicknameScreen(),
+              ),
+            ),
+          );
+        } else {
+          // 닉네임이 설정되었으면 채팅방 목록 화면으로 이동
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const RoomListScreen()),
+          );
+        }
       } catch (e, s) {
         if (kDebugMode) {
           print('초기화 오류: $e');
