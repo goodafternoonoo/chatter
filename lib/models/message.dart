@@ -20,7 +20,7 @@ class Message {
       content: json['content'] as String,
       sender: json['sender'] as String,
       localUserId: json['local_user_id'] as String,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
     );
   }
 }
