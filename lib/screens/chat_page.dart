@@ -11,7 +11,9 @@ import 'package:my_chat_app/constants/ui_constants.dart';
 import 'package:my_chat_app/mixins/scroll_controller_mixin.dart';
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key});
+  final String roomId;
+
+  const ChatPage({super.key, required this.roomId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -89,7 +91,6 @@ class _ChatPageState extends State<ChatPage>
                   stream: chatProvider.messagesStream,
                   builder: (context, snapshot) {
                     if (snapshot.hasError) {
-                      // Use error_utils to show a SnackBar and log the error
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         showErrorMessage(
                           context,
@@ -104,8 +105,7 @@ class _ChatPageState extends State<ChatPage>
                             const SizedBox(height: UIConstants.spacingMedium),
                             ElevatedButton(
                               onPressed: () {
-                                chatProvider
-                                    .initialize(); // Re-initialize the stream
+                                chatProvider.initialize();
                               },
                               child: const Text('재시도'),
                             ),
@@ -113,21 +113,18 @@ class _ChatPageState extends State<ChatPage>
                         ),
                       );
                     }
-                    if (!snapshot.hasData ||
-                        chatProvider.myLocalUserId == null) {
+                    if (!snapshot.hasData || chatProvider.myLocalUserId == null) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     final messages = snapshot.data!;
 
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (!scrollController.hasClients) return;
-                      // 사용자가 수동으로 스크롤 중이 아닐 때만 자동 스크롤
                       if (scrollController.position.userScrollDirection ==
                               ScrollDirection.idle &&
                           (_isInitialLoad ||
                               scrollController.position.pixels >=
-                                  scrollController.position.maxScrollExtent -
-                                      100)) {
+                                  scrollController.position.maxScrollExtent - 100)) {
                         scrollToBottom();
                         setState(() => _isInitialLoad = false);
                       }
@@ -138,8 +135,7 @@ class _ChatPageState extends State<ChatPage>
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final message = messages[index];
-                        final isMe =
-                            message.localUserId == chatProvider.myLocalUserId;
+                        final isMe = message.localUserId == chatProvider.myLocalUserId;
                         return ChatMessage(message: message, isMe: isMe);
                       },
                     );
@@ -209,10 +205,10 @@ class _ChatPageState extends State<ChatPage>
       ),
       floatingActionButton: showScrollToBottomButton
           ? FloatingActionButton(
-              onPressed: scrollToBottom,
-              child: const Icon(Icons.arrow_downward),
-            )
-          : null,
+                onPressed: scrollToBottom,
+                child: const Icon(Icons.arrow_downward),
+              )
+            : null,
     );
   }
 }

@@ -3,9 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
-import 'package:my_chat_app/screens/chat_page.dart';
+import 'package:my_chat_app/screens/room_list_screen.dart';
 import 'package:my_chat_app/screens/nickname_screen.dart';
-
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -38,15 +37,17 @@ class _SplashScreenState extends State<SplashScreen> {
           throw Exception(chatProvider.error);
         }
 
-        if (chatProvider.currentNickname != '익명') {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const ChatPage()),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const NicknameScreen()),
-          );
-        }
+        if (chatProvider.shouldShowNicknameDialog) {
+        // 닉네임이 설정되지 않았으면 닉네임 설정 화면으로 이동
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const NicknameScreen()),
+        );
+      } else {
+        // 닉네임이 설정되었으면 채팅방 목록 화면으로 이동
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const RoomListScreen()),
+        );
+      }
       } catch (e, s) {
         if (kDebugMode) {
           print('초기화 오류: $e');

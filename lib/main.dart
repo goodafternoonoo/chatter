@@ -5,8 +5,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'models/theme_mode_provider.dart';
-import 'providers/chat_provider.dart'; // ChatProvider 임포트
+
 import 'package:my_chat_app/screens/splash_screen.dart';
+
+import 'package:my_chat_app/providers/chat_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,9 +22,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeModeProvider()),
-        ChangeNotifierProvider(
-          create: (context) => ChatProvider()..initialize(),
-        ),
+        // ChatProvider는 이제 ChatPage에서 개별적으로 생성됩니다.
       ],
       child: const MyApp(),
     ),
@@ -41,7 +41,10 @@ class MyApp extends StatelessWidget {
       themeMode: themeMode,
       theme: AppThemes.lightTheme,
       darkTheme: AppThemes.darkTheme,
-      home: const SplashScreen(),
+      home: ChangeNotifierProvider(
+        create: (_) => ChatProvider(roomId: '')..initialize(), // 임시 Provider
+        child: const SplashScreen(),
+      ),
       debugShowCheckedModeBanner: true,
     );
   }

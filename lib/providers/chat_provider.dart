@@ -7,6 +7,7 @@ import '../models/message.dart';
 import 'package:my_chat_app/constants/app_constants.dart';
 
 class ChatProvider with ChangeNotifier {
+  final String roomId;
   final SupabaseClient _supabase = Supabase.instance.client;
 
   late final Stream<List<Message>> messagesStream;
@@ -22,12 +23,17 @@ class ChatProvider with ChangeNotifier {
   bool get shouldShowNicknameDialog =>
       _isInitialized && _currentNickname == AppConstants.defaultNickname;
 
-  ChatProvider() {
-    messagesStream = _supabase
-        .from(AppConstants.messagesTableName)
-        .stream(primaryKey: ['id'])
-        .order('created_at', ascending: true)
-        .map((data) => data.map((item) => Message.fromJson(item)).toList());
+  ChatProvider({required this.roomId}) {
+    if (roomId.isNotEmpty) {
+      messagesStream = _supabase
+          .from(AppConstants.messagesTableName)
+          .stream(primaryKey: ['id'])
+          .eq('room_id', roomId) // roomId로 필터링
+          .order('created_at', ascending: true)
+          .map((data) => data.map((item) => Message.fromJson(item)).toList());
+    } else {
+      messagesStream = const Stream.empty(); // 빈 스트림으로 초기화
+    }
   }
 
   Future<void> initialize() async {
@@ -90,6 +96,7 @@ class ChatProvider with ChangeNotifier {
 
     try {
       await _supabase.from(AppConstants.messagesTableName).insert({
+        'room_id': roomId, // room_id 추가
         'content': content.trim(),
         'sender': _currentNickname,
         'local_user_id': _myLocalUserId,

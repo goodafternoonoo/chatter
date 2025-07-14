@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
-import 'package:my_chat_app/screens/chat_page.dart';
+import 'package:my_chat_app/screens/room_list_screen.dart';
 
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
@@ -31,7 +31,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
       try {
         await chatProvider.saveNickname(_nicknameController.text.trim());
         navigator.pushReplacement(
-          MaterialPageRoute(builder: (context) => const ChatPage()),
+          MaterialPageRoute(builder: (context) => const RoomListScreen()),
         );
       } catch (e, s) {
         if (mounted) showErrorSnackBar(context, e, s);
