@@ -57,6 +57,9 @@ class _ChatPageState extends State<ChatPage>
       if (!mounted) return;
       _messageController.clear();
       _focusNode.requestFocus(); // 메시지 전송 후 포커스 유지
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        scrollToBottom(); // 메시지 전송 후 최하단으로 스크롤
+      });
     } catch (e, s) {
       if (mounted) showErrorSnackBar(context, e, s);
     }
@@ -118,20 +121,28 @@ class _ChatPageState extends State<ChatPage>
                         ),
                       );
                     }
-                    if (!snapshot.hasData || chatProvider.myLocalUserId == null) {
+                    if (!snapshot.hasData ||
+                        chatProvider.myLocalUserId == null) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     final messages = snapshot.data!;
 
+                    // 초기 로드 시 또는 메시지 추가 시 최하단으로 스크롤
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (!scrollController.hasClients) return;
-                      if (scrollController.position.userScrollDirection ==
-                              ScrollDirection.idle &&
-                          (_isInitialLoad ||
-                              scrollController.position.pixels >=
-                                  scrollController.position.maxScrollExtent - 100)) {
+
+                      // 초기 로드 시 무조건 최하단으로 스크롤
+                      if (_isInitialLoad) {
                         scrollToBottom();
                         setState(() => _isInitialLoad = false);
+                      } else if (scrollController
+                                  .position
+                                  .userScrollDirection ==
+                              ScrollDirection.idle &&
+                          scrollController.position.pixels >=
+                              scrollController.position.maxScrollExtent - 100) {
+                        // 사용자가 최하단 근처에 있을 때만 자동 스크롤
+                        scrollToBottom();
                       }
                     });
 
@@ -140,7 +151,8 @@ class _ChatPageState extends State<ChatPage>
                       itemCount: messages.length,
                       itemBuilder: (context, index) {
                         final message = messages[index];
-                        final isMe = message.localUserId == chatProvider.myLocalUserId;
+                        final isMe =
+                            message.localUserId == chatProvider.myLocalUserId;
                         return ChatMessage(message: message, isMe: isMe);
                       },
                     );
@@ -211,10 +223,10 @@ class _ChatPageState extends State<ChatPage>
       ),
       floatingActionButton: showScrollToBottomButton
           ? FloatingActionButton(
-                onPressed: scrollToBottom,
-                child: const Icon(Icons.arrow_downward),
-              )
-            : null,
+              onPressed: scrollToBottom,
+              child: const Icon(Icons.arrow_downward),
+            )
+          : null,
     );
   }
 }
