@@ -31,6 +31,21 @@ class _RoomListScreenState extends State<RoomListScreen> {
     }
   }
 
+  Future<void> _deleteRoom(String roomId) async {
+    try {
+      await Supabase.instance.client.from('rooms').delete().eq('id', roomId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('채팅방이 삭제되었습니다.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('채팅방 삭제에 실패했습니다: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,6 +79,27 @@ class _RoomListScreenState extends State<RoomListScreen> {
                               child: ChatPage(roomId: room.id),
                             ),
                           ),
+                        );
+                      },
+                      onLongPress: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (BuildContext bc) {
+                            return SafeArea(
+                              child: Wrap(
+                                children: <Widget>[
+                                  ListTile(
+                                    leading: const Icon(Icons.delete),
+                                    title: const Text('채팅방 삭제'),
+                                    onTap: () {
+                                      Navigator.pop(context); // 모달 닫기
+                                      _deleteRoom(room.id);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         );
                       },
                     );
