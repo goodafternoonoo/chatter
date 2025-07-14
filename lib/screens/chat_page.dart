@@ -22,6 +22,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage>
     with ScrollControllerMixin<ChatPage> {
   final _messageController = TextEditingController();
+  final _focusNode = FocusNode(); // FocusNode 추가
 
   bool _isInitialLoad = true;
   bool _isMessageEmpty = true;
@@ -30,12 +31,16 @@ class _ChatPageState extends State<ChatPage>
   void initState() {
     super.initState();
     _messageController.addListener(_onMessageChanged);
+    _focusNode.addListener(() {
+      // 포커스 상태 변경 시 필요한 로직 추가 가능
+    });
   }
 
   @override
   void dispose() {
     _messageController.removeListener(_onMessageChanged);
     _messageController.dispose();
+    _focusNode.dispose(); // FocusNode 해제
     super.dispose();
   }
 
@@ -51,7 +56,7 @@ class _ChatPageState extends State<ChatPage>
       await chatProvider.sendMessage(_messageController.text);
       if (!mounted) return;
       _messageController.clear();
-      FocusScope.of(context).unfocus(); // 키보드 닫기
+      _focusNode.requestFocus(); // 메시지 전송 후 포커스 유지
     } catch (e, s) {
       if (mounted) showErrorSnackBar(context, e, s);
     }
@@ -180,6 +185,7 @@ class _ChatPageState extends State<ChatPage>
                     },
                     child: TextField(
                       controller: _messageController,
+                      focusNode: _focusNode, // focusNode 할당
                       minLines: 1,
                       maxLines: 5,
                       decoration: const InputDecoration(
