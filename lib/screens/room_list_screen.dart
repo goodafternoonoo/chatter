@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:my_chat_app/screens/chat_page.dart';
-import 'package:my_chat_app/models/room.dart'; // Room 모델을 곧 생성할 예정입니다.
+import 'package:my_chat_app/models/room.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
 
@@ -44,6 +44,48 @@ class _RoomListScreenState extends State<RoomListScreen> {
         SnackBar(content: Text('채팅방 삭제에 실패했습니다: $e')),
       );
     }
+  }
+
+  Future<void> _showCreateRoomBottomSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext bc) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(bc).viewInsets.bottom,
+            left: 16.0,
+            right: 16.0,
+            top: 16.0,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextField(
+                controller: _newRoomController,
+                decoration: const InputDecoration(
+                  hintText: '새 채팅방 이름',
+                  border: OutlineInputBorder(),
+                ),
+                autofocus: true,
+                onSubmitted: (value) {
+                  _createRoom();
+                  Navigator.pop(bc); // 모달 닫기
+                },
+              ),
+              const SizedBox(height: 16.0),
+              ElevatedButton(
+                onPressed: () {
+                  _createRoom();
+                  Navigator.pop(bc); // 모달 닫기
+                },
+                child: const Text('채팅방 생성'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -108,26 +150,11 @@ class _RoomListScreenState extends State<RoomListScreen> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _newRoomController,
-                    decoration: const InputDecoration(
-                      hintText: '새 채팅방 이름',
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _createRoom,
-                ),
-              ],
-            ),
-          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showCreateRoomBottomSheet,
+        child: const Icon(Icons.add),
       ),
     );
   }
