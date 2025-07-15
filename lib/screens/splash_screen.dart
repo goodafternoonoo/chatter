@@ -2,8 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
-import 'package:my_chat_app/screens/room_list_screen.dart';
-import 'package:my_chat_app/screens/nickname_screen.dart';
+import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -26,7 +25,12 @@ class _SplashScreenState extends State<SplashScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final chatProvider = context.read<ChatProvider>();
       try {
+        // ChatProvider가 초기화될 때까지 기다립니다.
+        // 이 부분은 ChatProvider의 initialize()가 main.dart에서 호출되도록 변경되었으므로
+        // 여기서는 단순히 초기화 상태를 확인합니다.
         if (!chatProvider.isInitialized) {
+          // 초기화가 완료될 때까지 잠시 기다립니다.
+          // 실제 앱에서는 로딩 스피너 등을 보여줄 수 있습니다.
           await Future.delayed(const Duration(milliseconds: 500));
         }
 
@@ -37,21 +41,9 @@ class _SplashScreenState extends State<SplashScreen> {
         }
 
         if (chatProvider.shouldShowNicknameDialog) {
-          // 닉네임이 설정되지 않았으면 닉네임 설정 화면으로 이동
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => ChangeNotifierProvider(
-                create: (_) =>
-                    ChatProvider(roomId: '')..initialize(), // 임시 ChatProvider
-                child: const NicknameScreen(),
-              ),
-            ),
-          );
+          context.go('/nickname');
         } else {
-          // 닉네임이 설정되었으면 채팅방 목록 화면으로 이동
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const RoomListScreen()),
-          );
+          context.go('/rooms');
         }
       } catch (e, s) {
         if (kDebugMode) {

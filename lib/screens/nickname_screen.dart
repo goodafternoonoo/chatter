@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
-import 'package:my_chat_app/screens/room_list_screen.dart';
-
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
+import 'package:go_router/go_router.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key});
@@ -26,19 +25,16 @@ class _NicknameScreenState extends State<NicknameScreen> {
   Future<void> _saveNickname() async {
     if (_formKey.currentState!.validate()) {
       final chatProvider = context.read<ChatProvider>();
-      final navigator = Navigator.of(context);
 
       try {
         await chatProvider.saveNickname(_nicknameController.text.trim());
         if (!mounted) return;
 
-        if (navigator.canPop()) {
-          navigator.pop(); // 이전 화면으로 돌아가기
+        if (context.canPop()) {
+          context.pop(); // 이전 화면으로 돌아가기
         } else {
           // 스택에 이전 화면이 없으면 RoomListScreen으로 이동
-          navigator.pushReplacement(
-            MaterialPageRoute(builder: (context) => const RoomListScreen()),
-          );
+          context.go('/rooms');
         }
       } on Exception catch (e, s) {
         if (mounted) showErrorSnackBar(context, e, s);

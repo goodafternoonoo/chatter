@@ -13,6 +13,7 @@ import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
 import 'package:my_chat_app/mixins/scroll_controller_mixin.dart';
+import 'package:go_router/go_router.dart';
 
 class ChatPage extends StatefulWidget {
   final String roomId;
@@ -156,8 +157,7 @@ class _ChatPageState extends State<ChatPage>
                             ),
                           );
                         }
-                        if (!snapshot.hasData ||
-                            chatProvider.myLocalUserId == null) {
+                        if (!chatProvider.isInitialized || !snapshot.hasData) {
                           return const Center(
                             child: CircularProgressIndicator(),
                           );
@@ -289,7 +289,7 @@ class _ChatPageState extends State<ChatPage>
                                     leading: const Icon(Icons.photo_library),
                                     title: const Text('갤러리에서 선택'),
                                     onTap: () {
-                                      Navigator.pop(context);
+                                      context.pop();
                                       _pickImage(ImageSource.gallery);
                                     },
                                   ),
@@ -297,7 +297,7 @@ class _ChatPageState extends State<ChatPage>
                                     leading: const Icon(Icons.camera_alt),
                                     title: const Text('카메라로 촬영'),
                                     onTap: () {
-                                      Navigator.pop(context);
+                                      context.pop();
                                       _pickImage(ImageSource.camera);
                                     },
                                   ),

@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:my_chat_app/screens/chat_page.dart';
+import 'package:go_router/go_router.dart'; // go_router 임포트
 import 'package:my_chat_app/models/room.dart';
-import 'package:provider/provider.dart';
-import 'package:my_chat_app/providers/chat_provider.dart';
-import 'package:my_chat_app/screens/nickname_screen.dart';
 
 class RoomListScreen extends StatefulWidget {
   const RoomListScreen({super.key});
@@ -71,14 +68,14 @@ class _RoomListScreenState extends State<RoomListScreen> {
                 autofocus: true,
                 onSubmitted: (value) {
                   _createRoom();
-                  Navigator.pop(bc); // 모달 닫기
+                  context.pop(); // 모달 닫기
                 },
               ),
               const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () {
                   _createRoom();
-                  Navigator.pop(bc); // 모달 닫기
+                  context.pop(); // 모달 닫기
                 },
                 child: const Text('채팅방 생성'),
               ),
@@ -99,14 +96,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
             icon: const Icon(Icons.person_outline),
             tooltip: '닉네임 수정',
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => ChangeNotifierProvider(
-                    create: (_) => ChatProvider(roomId: '')..initialize(), // 임시 ChatProvider
-                    child: const NicknameScreen(),
-                  ),
-                ),
-              );
+              context.go('/nickname');
             },
           ),
         ],
@@ -131,14 +121,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
                     return ListTile(
                       title: Text(room.name),
                       onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => ChangeNotifierProvider(
-                              create: (_) => ChatProvider(roomId: room.id)..initialize(),
-                              child: ChatPage(roomId: room.id),
-                            ),
-                          ),
-                        );
+                        context.go('/chat/${room.id}');
                       },
                       onLongPress: () {
                         showModalBottomSheet(
@@ -151,7 +134,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
                                     leading: const Icon(Icons.delete),
                                     title: const Text('채팅방 삭제'),
                                     onTap: () {
-                                      Navigator.pop(context); // 모달 닫기
+                                      context.pop(); // 모달 닫기
                                       _deleteRoom(room.id);
                                     },
                                   ),
