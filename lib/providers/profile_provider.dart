@@ -1,3 +1,4 @@
+import 'dart:developer'; // dart:developer 임포트
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -37,7 +38,7 @@ class ProfileProvider with ChangeNotifier {
       }
       return profile;
     } catch (e) {
-      print('Error fetching profile for $userId: $e'); // 에러 로깅
+      log('Error fetching profile for $userId', name: 'ProfileProvider', error: e); // 에러 로깅
       return null;
     }
   }

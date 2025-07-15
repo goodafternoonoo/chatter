@@ -1,3 +1,4 @@
+import 'dart:developer'; // dart:developer 임포트
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -7,10 +8,12 @@ void showErrorSnackBar(
   StackTrace? stackTrace,
 ) {
   if (kDebugMode) {
-    print('오류 발생: $error');
-    if (stackTrace != null) {
-      print(stackTrace);
-    }
+    log(
+      '오류 발생',
+      name: 'ErrorUtils',
+      error: error,
+      stackTrace: stackTrace,
+    );
   }
 
   ScaffoldMessenger.of(context).showSnackBar(
@@ -23,7 +26,10 @@ void showErrorSnackBar(
 
 void showErrorMessage(BuildContext context, String message) {
   if (kDebugMode) {
-    print('오류 발생: $message');
+    log(
+      '오류 발생: $message',
+      name: 'ErrorUtils',
+    );
   }
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
