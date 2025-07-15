@@ -6,11 +6,14 @@ import 'package:uuid/uuid.dart';
 import '../models/message.dart';
 import 'package:my_chat_app/constants/app_constants.dart';
 
+import 'package:my_chat_app/utils/notification_service.dart'; // NotificationService 임포트
+
 class ChatProvider with ChangeNotifier {
   final String roomId;
   final SupabaseClient _supabase = Supabase.instance.client;
 
   late final Stream<List<Message>> messagesStream;
+  StreamSubscription<List<Message>>? _messageSubscription; // 구독 관리
   String _currentNickname = AppConstants.defaultNickname;
   String? _myLocalUserId;
   bool _isInitialized = false;
@@ -31,9 +34,29 @@ class ChatProvider with ChangeNotifier {
           .eq('room_id', roomId) // roomId로 필터링
           .order('created_at', ascending: true)
           .map((data) => data.map((item) => Message.fromJson(item)).toList());
+
+      _messageSubscription = messagesStream.listen((messages) {
+        if (messages.isNotEmpty) {
+          final latestMessage = messages.last;
+          // 내가 보낸 메시지가 아닐 때만 알림 표시
+          if (latestMessage.localUserId != _myLocalUserId) {
+            NotificationService.showNotification(
+              id: latestMessage.id.hashCode, // 메시지 ID를 기반으로 고유 ID 생성
+              title: latestMessage.sender,
+              body: latestMessage.content,
+            );
+          }
+        }
+      });
     } else {
       messagesStream = const Stream.empty(); // 빈 스트림으로 초기화
     }
+  }
+
+  @override
+  void dispose() {
+    _messageSubscription?.cancel(); // 구독 취소
+    super.dispose();
   }
 
   Future<void> initialize() async {

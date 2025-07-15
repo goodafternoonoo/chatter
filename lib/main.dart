@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'models/theme_mode_provider.dart';
 
 import 'package:my_chat_app/screens/splash_screen.dart';
+import 'package:my_chat_app/utils/notification_service.dart'; // NotificationService 임포트
 
 import 'package:my_chat_app/providers/chat_provider.dart';
 
@@ -18,6 +19,7 @@ void main() async {
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
   await initializeDateFormatting('ko', null);
+  await NotificationService.initializeNotifications(); // 알림 서비스 초기화
   runApp(
     MultiProvider(
       providers: [

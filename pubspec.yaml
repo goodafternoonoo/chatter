@@ -12,8 +12,9 @@ dependencies:
     flutter:
         sdk: flutter
     supabase_flutter: ^2.9.1
+    flutter_local_notifications: any # 알림 패키지 추가
+    flutter_local_notifications_windows: any # Windows 알림 플러그인 추가
 
-    
     flutter_dotenv: ^5.2.1
     shared_preferences: ^2.2.3
     uuid: ^4.4.0
