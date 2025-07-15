@@ -85,7 +85,10 @@ class _ChatPageState extends State<ChatPage>
       try {
         final imageUrl = await chatProvider.uploadImage(image);
         if (!mounted) return;
-        await chatProvider.sendMessage('', imageUrl: imageUrl); // 이미지 URL을 메시지로 전송
+        await chatProvider.sendMessage(
+          '',
+          imageUrl: imageUrl,
+        ); // 이미지 URL을 메시지로 전송
         WidgetsBinding.instance.addPostFrameCallback((_) {
           scrollToBottom(); // 메시지 전송 후 최하단으로 스크롤
         });

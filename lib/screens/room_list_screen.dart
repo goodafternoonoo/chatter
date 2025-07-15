@@ -121,7 +121,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
                     return ListTile(
                       title: Text(room.name),
                       onTap: () {
-                        context.go('/chat/${room.id}');
+                        context.push('/chat/${room.id}');
                       },
                       onLongPress: () {
                         showModalBottomSheet(
