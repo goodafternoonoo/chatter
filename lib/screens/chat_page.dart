@@ -10,6 +10,7 @@ import 'package:my_chat_app/chat_message.dart';
 import 'package:my_chat_app/models/message.dart';
 import 'package:my_chat_app/models/theme_mode_provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
+import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
 import 'package:my_chat_app/mixins/scroll_controller_mixin.dart';
@@ -126,10 +127,12 @@ class _ChatPageState extends State<ChatPage>
               Expanded(
                 child: Consumer<ChatProvider>(
                   builder: (context, chatProvider, child) {
+                    final profileProvider = context.watch<ProfileProvider>(); // ProfileProvider watch
+
                     if (chatProvider.error != null) {
                       return Center(child: Text('오류: ${chatProvider.error}'));
                     }
-                    if (!chatProvider.isInitialized) {
+                    if (!chatProvider.isInitialized || profileProvider.isLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
                     return StreamBuilder<List<Message>>(
@@ -211,7 +214,10 @@ class _ChatPageState extends State<ChatPage>
                               message: message,
                               isMe: isMe,
                               myLocalUserId: chatProvider.myLocalUserId!,
-                            ); // myLocalUserId 전달
+                              avatarUrl: isMe
+                                  ? profileProvider.currentProfile?.avatarUrl
+                                  : null, // 내 메시지일 때만 아바타 URL 전달
+                            );
                           },
                         );
                       },

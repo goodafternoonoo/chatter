@@ -93,10 +93,10 @@ class _RoomListScreenState extends State<RoomListScreen> {
         title: const Text('채팅방 목록'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: '닉네임 수정',
+            icon: const Icon(Icons.account_circle),
+            tooltip: '프로필 관리',
             onPressed: () {
-              context.go('/nickname');
+              context.push('/profile');
             },
           ),
         ],

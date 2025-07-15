@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'models/theme_mode_provider.dart';
 import 'package:my_chat_app/utils/notification_service.dart';
 import 'package:my_chat_app/providers/chat_provider.dart'; // ChatProvider 임포트
+import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트
 import 'package:my_chat_app/routes/app_router.dart'; // app_router 임포트
 
 void main() async {
@@ -23,6 +24,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeModeProvider()),
         ChangeNotifierProvider(create: (context) => ChatProvider(roomId: '')..initialize()),
+        ChangeNotifierProvider(create: (context) => ProfileProvider(chatProvider: context.read<ChatProvider>())..loadProfile()), // ProfileProvider 추가
       ],
       child: const MyApp(),
     ),

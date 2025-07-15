@@ -5,6 +5,7 @@ import 'package:my_chat_app/screens/splash_screen.dart';
 import 'package:my_chat_app/screens/nickname_screen.dart';
 import 'package:my_chat_app/screens/room_list_screen.dart';
 import 'package:my_chat_app/screens/chat_page.dart';
+import 'package:my_chat_app/screens/profile_screen.dart'; // ProfileScreen 임포트
 import 'package:provider/provider.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -35,6 +36,12 @@ final GoRouter appRouter = GoRouter(
           create: (_) => ChatProvider(roomId: roomId)..initialize(),
           child: ChatPage(roomId: roomId),
         );
+      },
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (BuildContext context, GoRouterState state) {
+        return const ProfileScreen();
       },
     ),
   ],

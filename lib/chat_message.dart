@@ -8,12 +8,14 @@ class ChatMessage extends StatelessWidget {
     super.key,
     required this.message,
     required this.isMe,
-    required this.myLocalUserId, // myLocalUserId 추가
+    required this.myLocalUserId,
+    this.avatarUrl, // avatarUrl 추가
   });
 
   final Message message;
   final bool isMe;
-  final String myLocalUserId; // myLocalUserId 필드 추가
+  final String myLocalUserId;
+  final String? avatarUrl; // avatarUrl 필드 추가
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
@@ -41,14 +43,17 @@ class ChatMessage extends StatelessWidget {
           if (!isMe) ...[
             CircleAvatar(
               radius: UIConstants.avatarRadius,
+              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
               backgroundColor: Colors.grey[400],
-              child: Text(
-                message.sender.isNotEmpty ? message.sender[0] : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              child: avatarUrl == null
+                  ? Text(
+                      message.sender.isNotEmpty ? message.sender[0] : '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(width: UIConstants.spacingMedium),
           ],
