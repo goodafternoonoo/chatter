@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart'
+    as emoji_picker_flutter;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -26,13 +29,18 @@ class _ChatPageState extends State<ChatPage>
 
   bool _isInitialLoad = true;
   bool _isMessageEmpty = true;
+  bool _showEmojiPicker = false; // 이모티콘 선택기 표시 여부
 
   @override
   void initState() {
     super.initState();
     _messageController.addListener(_onMessageChanged);
     _focusNode.addListener(() {
-      // 포커스 상태 변경 시 필요한 로직 추가 가능
+      if (_focusNode.hasFocus) {
+        setState(() {
+          _showEmojiPicker = false; // 키보드가 올라오면 이모티콘 선택기 숨김
+        });
+      }
     });
   }
 
@@ -112,7 +120,9 @@ class _ChatPageState extends State<ChatPage>
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 const Text('메시지를 불러오는 데 실패했습니다.'),
-                                const SizedBox(height: UIConstants.spacingMedium),
+                                const SizedBox(
+                                  height: UIConstants.spacingMedium,
+                                ),
                                 ElevatedButton(
                                   onPressed: () {
                                     chatProvider.initialize();
@@ -125,7 +135,9 @@ class _ChatPageState extends State<ChatPage>
                         }
                         if (!snapshot.hasData ||
                             chatProvider.myLocalUserId == null) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         }
                         final messages = snapshot.data!;
 
@@ -142,7 +154,8 @@ class _ChatPageState extends State<ChatPage>
                                       .userScrollDirection ==
                                   ScrollDirection.idle &&
                               scrollController.position.pixels >=
-                                  scrollController.position.maxScrollExtent - 100) {
+                                  scrollController.position.maxScrollExtent -
+                                      100) {
                             // 사용자가 최하단 근처에 있을 때만 자동 스크롤
                             scrollToBottom();
                           }
@@ -157,7 +170,8 @@ class _ChatPageState extends State<ChatPage>
                           itemBuilder: (context, index) {
                             final message = messages[index];
                             final isMe =
-                                message.localUserId == chatProvider.myLocalUserId;
+                                message.localUserId ==
+                                chatProvider.myLocalUserId;
 
                             // 메시지가 화면에 보일 때 읽음 처리
                             if (!isMe &&
@@ -191,9 +205,15 @@ class _ChatPageState extends State<ChatPage>
                             final Set<LogicalKeyboardKey> pressed =
                                 HardwareKeyboard.instance.logicalKeysPressed;
                             final bool isModifierPressed =
-                                pressed.contains(LogicalKeyboardKey.controlLeft) ||
-                                pressed.contains(LogicalKeyboardKey.controlRight) ||
-                                pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                                pressed.contains(
+                                  LogicalKeyboardKey.controlLeft,
+                                ) ||
+                                pressed.contains(
+                                  LogicalKeyboardKey.controlRight,
+                                ) ||
+                                pressed.contains(
+                                  LogicalKeyboardKey.shiftLeft,
+                                ) ||
                                 pressed.contains(LogicalKeyboardKey.shiftRight);
 
                             if (isModifierPressed) {
@@ -221,14 +241,35 @@ class _ChatPageState extends State<ChatPage>
                           decoration: const InputDecoration(
                             hintText: '메시지를 입력하세요',
                             contentPadding: EdgeInsets.symmetric(
-                              horizontal: UIConstants.messageInputHorizontalPadding,
+                              horizontal:
+                                  UIConstants.messageInputHorizontalPadding,
                               vertical: UIConstants.messageInputVerticalPadding,
                             ),
                           ),
                           keyboardType: TextInputType.multiline,
-                          onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                          onTapOutside: (event) =>
+                              FocusScope.of(context).unfocus(),
                         ),
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        _showEmojiPicker
+                            ? Icons.keyboard
+                            : Icons.emoji_emotions,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showEmojiPicker = !_showEmojiPicker;
+                          if (_showEmojiPicker) {
+                            FocusScope.of(
+                              context,
+                            ).unfocus(); // 이모티콘 선택기 표시 시 키보드 숨김
+                          } else {
+                            _focusNode.requestFocus(); // 이모티콘 선택기 숨김 시 키보드 표시
+                          }
+                        });
+                      },
                     ),
                     IconButton(
                       icon: const Icon(Icons.send),
@@ -237,11 +278,56 @@ class _ChatPageState extends State<ChatPage>
                   ],
                 ),
               ),
+              Offstage(
+                offstage: !_showEmojiPicker,
+                child: SizedBox(
+                  height: 250, // 이모티콘 선택기 높이
+                  child: emoji_picker_flutter.EmojiPicker(
+                    textEditingController: _messageController,
+                    onEmojiSelected: (category, emoji) {
+                      // 이모티콘이 선택되었을 때의 로직은 textEditingController가 처리
+                    },
+                    config: emoji_picker_flutter.Config(
+                      height: 250,
+                      checkPlatformCompatibility: true,
+                      emojiViewConfig: emoji_picker_flutter.EmojiViewConfig(
+                        emojiSizeMax:
+                            28 *
+                            (foundation.defaultTargetPlatform ==
+                                    TargetPlatform.iOS
+                                ? 1.20
+                                : 1.0),
+                      ),
+                      skinToneConfig:
+                          const emoji_picker_flutter.SkinToneConfig(),
+                      categoryViewConfig:
+                          emoji_picker_flutter.CategoryViewConfig(
+                            initCategory: emoji_picker_flutter.Category.RECENT,
+                            indicatorColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            iconColor: Colors.grey,
+                            iconColorSelected: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            backspaceColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                          ),
+                      bottomActionBarConfig:
+                          const emoji_picker_flutter.BottomActionBarConfig(),
+                      searchViewConfig:
+                          const emoji_picker_flutter.SearchViewConfig(),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
           if (showScrollToBottomButton)
             Positioned(
-              bottom: kToolbarHeight + UIConstants.spacingMedium, // 메시지 입력 필드 위에 위치
+              bottom:
+                  kToolbarHeight + UIConstants.spacingMedium, // 메시지 입력 필드 위에 위치
               left: 0.0, // 왼쪽 정렬
               right: 0.0, // 오른쪽 정렬
               child: Center(
