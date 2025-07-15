@@ -309,14 +309,15 @@ class _ChatPageState extends State<ChatPage>
                                       _pickImage(ImageSource.gallery);
                                     },
                                   ),
-                                  ListTile(
-                                    leading: const Icon(Icons.camera_alt),
-                                    title: const Text('카메라로 촬영'),
-                                    onTap: () {
-                                      context.pop();
-                                      _pickImage(ImageSource.camera);
-                                    },
-                                  ),
+                                  if (foundation.defaultTargetPlatform != TargetPlatform.windows) // Windows가 아닐 때만 카메라 옵션 표시
+                                    ListTile(
+                                      leading: const Icon(Icons.camera_alt),
+                                      title: const Text('카메라로 촬영'),
+                                      onTap: () {
+                                        context.pop();
+                                        _pickImage(ImageSource.camera);
+                                      },
+                                    ),
                                 ],
                               ),
                             );
