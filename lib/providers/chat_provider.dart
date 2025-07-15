@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io'; // File 사용을 위해 추가
+import 'package:image_picker/image_picker.dart'; // XFile 사용을 위해 추가
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart'; // WidgetsBinding, AppLifecycleState 사용을 위해 추가
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -41,7 +43,8 @@ class ChatProvider with ChangeNotifier {
           final latestMessage = messages.last;
           // 내가 보낸 메시지가 아니고, 앱이 백그라운드에 있을 때만 알림 표시
           if (latestMessage.localUserId != _myLocalUserId &&
-              WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
+              WidgetsBinding.instance.lifecycleState !=
+                  AppLifecycleState.resumed) {
             NotificationService.showNotification(
               notificationId: roomId.hashCode, // 채팅방 ID를 기반으로 고유 ID 생성
               title: latestMessage.sender,
@@ -116,8 +119,10 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  Future<void> sendMessage(String content) async {
-    if (content.trim().isEmpty || _myLocalUserId == null) return;
+  Future<void> sendMessage(String content, {String? imageUrl}) async {
+    if (content.trim().isEmpty && imageUrl == null || _myLocalUserId == null) {
+      return;
+    }
 
     try {
       await _supabase.from(AppConstants.messagesTableName).insert({
@@ -125,9 +130,36 @@ class ChatProvider with ChangeNotifier {
         'content': content.trim(),
         'sender': _currentNickname,
         'local_user_id': _myLocalUserId,
+        'image_url': imageUrl, // image_url 추가
       });
     } catch (e) {
       _error = '메시지 전송에 실패했습니다: $e';
+      if (kDebugMode) {
+        print(_error);
+      }
+      rethrow;
+    }
+  }
+
+  Future<String> uploadImage(XFile imageFile) async {
+    try {
+      final String fileName = '${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final String path = 'chat-images/$fileName';
+
+      await _supabase.storage
+          .from('chat-images')
+          .upload(
+            path,
+            File(imageFile.path),
+            fileOptions: const FileOptions(upsert: true),
+          );
+
+      final String publicUrl = _supabase.storage
+          .from('chat-images')
+          .getPublicUrl(path);
+      return publicUrl;
+    } catch (e) {
+      _error = '이미지 업로드에 실패했습니다: $e';
       if (kDebugMode) {
         print(_error);
       }
@@ -148,7 +180,9 @@ class ChatProvider with ChangeNotifier {
 
       if (response.isEmpty) return; // 메시지를 찾을 수 없음
 
-      final currentReadBy = (response[0]['read_by'] as List<dynamic>? ?? []).map((e) => e.toString()).toList();
+      final currentReadBy = (response[0]['read_by'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList();
 
       // 2. 이미 읽었는지 확인
       if (currentReadBy.contains(_myLocalUserId)) {
@@ -160,9 +194,10 @@ class ChatProvider with ChangeNotifier {
       newReadBy.add(_myLocalUserId!);
 
       // 4. 메시지 업데이트
-      await _supabase.from(AppConstants.messagesTableName).update({
-        'read_by': newReadBy,
-      }).eq('id', messageId);
+      await _supabase
+          .from(AppConstants.messagesTableName)
+          .update({'read_by': newReadBy})
+          .eq('id', messageId);
     } catch (e) {
       _error = '메시지 읽음 처리 실패: $e';
       if (kDebugMode) {

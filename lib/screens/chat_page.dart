@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart'
     as emoji_picker_flutter;
@@ -70,6 +71,28 @@ class _ChatPageState extends State<ChatPage>
       });
     } catch (e, s) {
       if (mounted) showErrorSnackBar(context, e, s);
+    }
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: source);
+
+    if (image != null) {
+      if (!mounted) return; // 추가된 부분
+      final chatProvider = context.read<ChatProvider>();
+      try {
+        final imageUrl = await chatProvider.uploadImage(image);
+        if (!mounted) return;
+        await chatProvider.sendMessage('', imageUrl: imageUrl); // 이미지 URL을 메시지로 전송
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          scrollToBottom(); // 메시지 전송 후 최하단으로 스크롤
+        });
+      } catch (e, s) {
+        if (mounted) {
+          showErrorSnackBar(context, e, s);
+        }
+      }
     }
   }
 
@@ -251,6 +274,39 @@ class _ChatPageState extends State<ChatPage>
                               FocusScope.of(context).unfocus(),
                         ),
                       ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.image), // 이미지 첨부 버튼
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return SafeArea(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  ListTile(
+                                    leading: const Icon(Icons.photo_library),
+                                    title: const Text('갤러리에서 선택'),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      _pickImage(ImageSource.gallery);
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.camera_alt),
+                                    title: const Text('카메라로 촬영'),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      _pickImage(ImageSource.camera);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                     IconButton(
                       icon: Icon(

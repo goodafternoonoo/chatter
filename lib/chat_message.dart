@@ -109,15 +109,40 @@ class ChatMessage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: UIConstants.spacingSmall),
-                  Text(
-                    message.content,
-                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          color: isMe
-                              ? Theme.of(context).colorScheme.onPrimaryContainer
-                              : Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
+                  if (message.imageUrl != null) // 이미지 URL이 있는 경우 이미지 표시
+                    Padding(
+                      padding: const EdgeInsets.only(top: UIConstants.spacingSmall, bottom: UIConstants.spacingSmall),
+                      child: Image.network(
+                        message.imageUrl!,
+                        width: 200, // 이미지 너비 제한
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Text('이미지 로드 실패');
+                        },
+                      ),
+                    ),
+                  if (message.content.isNotEmpty) // 메시지 내용이 있는 경우 텍스트 표시
+                    Padding(
+                      padding: EdgeInsets.only(top: message.imageUrl != null ? 0 : UIConstants.spacingSmall), // 이미지와 텍스트 간 간격 조절
+                      child: Text(
+                        message.content,
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                              color: isMe
+                                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                                  : Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                    ),
                 ],
               ),
             ),
