@@ -11,14 +11,36 @@ class ProfileProvider with ChangeNotifier {
   Profile? _currentProfile;
   bool _isLoading = false;
   String? _error;
+  final Map<String, Profile> _profileCache = {}; // 프로필 캐시 추가
 
   Profile? get currentProfile => _currentProfile;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  ProfileProvider({ProfileRepository? profileRepository, required ChatProvider chatProvider})
-      : _profileRepository = profileRepository ?? ProfileRepository(Supabase.instance.client),
-        _chatProvider = chatProvider;
+  ProfileProvider({
+    ProfileRepository? profileRepository,
+    required ChatProvider chatProvider,
+  }) : _profileRepository =
+           profileRepository ?? ProfileRepository(Supabase.instance.client),
+       _chatProvider = chatProvider;
+
+  // 특정 사용자 ID로 프로필 가져오기 (캐시 사용)
+  Future<Profile?> getProfileById(String userId) async {
+    if (_profileCache.containsKey(userId)) {
+      return _profileCache[userId];
+    }
+
+    try {
+      final profile = await _profileRepository.getProfileById(userId);
+      if (profile != null) {
+        _profileCache[userId] = profile;
+      }
+      return profile;
+    } catch (e) {
+      print('Error fetching profile for $userId: $e'); // 에러 로깅
+      return null;
+    }
+  }
 
   Future<void> loadProfile() async {
     _isLoading = true;
@@ -43,10 +65,7 @@ class ProfileProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateProfile({
-    String? nickname,
-    String? statusMessage,
-  }) async {
+  Future<void> updateProfile({String? nickname, String? statusMessage}) async {
     final userId = _chatProvider.myLocalUserId;
     if (userId == null) {
       _error = '로컬 사용자 ID를 찾을 수 없습니다. 로그인 상태를 확인해주세요.';
@@ -65,7 +84,6 @@ class ProfileProvider with ChangeNotifier {
         avatarUrl: _currentProfile?.avatarUrl,
         statusMessage: statusMessage ?? _currentProfile?.statusMessage,
       );
-      print('Updating profile with: ${newProfile.toJson()}'); // 디버그용
       await _profileRepository.upsertProfile(newProfile);
       await loadProfile(); // 업데이트된 프로필 정보를 다시 로드
     } catch (e) {
@@ -96,7 +114,6 @@ class ProfileProvider with ChangeNotifier {
         avatarUrl: imageUrl,
         statusMessage: _currentProfile?.statusMessage,
       );
-      print('Uploading avatar and updating profile with: ${newProfile.toJson()}'); // 디버그용
       await _profileRepository.upsertProfile(newProfile);
       await loadProfile(); // 업데이트된 프로필 정보를 다시 로드
     } catch (e) {

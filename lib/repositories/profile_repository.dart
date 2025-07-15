@@ -43,4 +43,16 @@ class ProfileRepository {
         .getPublicUrl(path);
     return publicUrl;
   }
+
+  // 특정 사용자 프로필 가져오기
+  Future<Profile?> getProfileById(String userId) async {
+    final response = await _supabase
+        .from('profiles')
+        .select()
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (response == null) return null;
+    return Profile.fromJson(response);
+  }
 }

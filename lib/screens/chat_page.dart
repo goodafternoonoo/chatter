@@ -10,6 +10,7 @@ import 'package:my_chat_app/chat_message.dart';
 import 'package:my_chat_app/models/message.dart';
 import 'package:my_chat_app/models/theme_mode_provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
+import 'package:my_chat_app/models/profile.dart'; // Profile 모델 임포트
 import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
@@ -210,13 +211,19 @@ class _ChatPageState extends State<ChatPage>
                               chatProvider.markMessageAsRead(message.id);
                             }
 
-                            return ChatMessage(
-                              message: message,
-                              isMe: isMe,
-                              myLocalUserId: chatProvider.myLocalUserId!,
-                              avatarUrl: isMe
-                                  ? profileProvider.currentProfile?.avatarUrl
-                                  : null, // 내 메시지일 때만 아바타 URL 전달
+                            return FutureBuilder<Profile?>(
+                              future: profileProvider.getProfileById(message.localUserId),
+                              builder: (context, profileSnapshot) {
+                                final Profile? senderProfile = profileSnapshot.data;
+                                return ChatMessage(
+                                  message: message,
+                                  isMe: isMe,
+                                  myLocalUserId: chatProvider.myLocalUserId!,
+                                  avatarUrl: isMe
+                                      ? profileProvider.currentProfile?.avatarUrl
+                                      : senderProfile?.avatarUrl, // 다른 사람 메시지일 때 해당 프로필의 아바타 URL 전달
+                                );
+                              },
                             );
                           },
                         );

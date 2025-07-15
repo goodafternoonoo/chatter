@@ -156,13 +156,16 @@ class ChatMessage extends StatelessWidget {
             const SizedBox(width: UIConstants.spacingMedium),
             CircleAvatar(
               radius: UIConstants.avatarRadius,
+              backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
               backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Text(
-                message.sender.isNotEmpty ? message.sender[0] : '?',
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-              ),
+              child: avatarUrl == null
+                  ? Text(
+                      message.sender.isNotEmpty ? message.sender[0] : '?',
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                    )
+                  : null,
             ),
           ],
         ],
