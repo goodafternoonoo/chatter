@@ -84,158 +84,177 @@ class _ChatPageState extends State<ChatPage>
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Consumer<ChatProvider>(
-              builder: (context, chatProvider, child) {
-                if (chatProvider.error != null) {
-                  return Center(child: Text('오류: ${chatProvider.error}'));
-                }
-                if (!chatProvider.isInitialized) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                return StreamBuilder<List<Message>>(
-                  stream: chatProvider.messagesStream,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        showErrorMessage(
-                          context,
-                          '실시간 메시지 로딩 중 오류 발생: ${snapshot.error}',
-                        );
-                      });
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text('메시지를 불러오는 데 실패했습니다.'),
-                            const SizedBox(height: UIConstants.spacingMedium),
-                            ElevatedButton(
-                              onPressed: () {
-                                chatProvider.initialize();
-                              },
-                              child: const Text('재시도'),
-                            ),
-                          ],
-                        ),
-                      );
+          Column(
+            children: [
+              Expanded(
+                child: Consumer<ChatProvider>(
+                  builder: (context, chatProvider, child) {
+                    if (chatProvider.error != null) {
+                      return Center(child: Text('오류: ${chatProvider.error}'));
                     }
-                    if (!snapshot.hasData ||
-                        chatProvider.myLocalUserId == null) {
+                    if (!chatProvider.isInitialized) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    final messages = snapshot.data!;
-
-                    // 초기 로드 시 또는 메시지 추가 시 최하단으로 스크롤
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (!scrollController.hasClients) return;
-
-                      // 초기 로드 시 무조건 최하단으로 스크롤
-                      if (_isInitialLoad) {
-                        scrollToBottom();
-                        setState(() => _isInitialLoad = false);
-                      } else if (scrollController
-                                  .position
-                                  .userScrollDirection ==
-                              ScrollDirection.idle &&
-                          scrollController.position.pixels >=
-                              scrollController.position.maxScrollExtent - 100) {
-                        // 사용자가 최하단 근처에 있을 때만 자동 스크롤
-                        scrollToBottom();
-                      }
-                    });
-
-                    return ListView.builder(
-                      key: const ValueKey('chatListView'), // 고유한 키 추가
-                      controller: scrollController,
-                      itemCount: messages.length,
-                      addAutomaticKeepAlives: false, // 불필요한 최적화 비활성화
-                      addRepaintBoundaries: false, // 불필요한 최적화 비활성화
-                      itemBuilder: (context, index) {
-                        final message = messages[index];
-                        final isMe =
-                            message.localUserId == chatProvider.myLocalUserId;
-
-                        // 메시지가 화면에 보일 때 읽음 처리
-                        if (!isMe && !message.readBy.contains(chatProvider.myLocalUserId)) {
-                          chatProvider.markMessageAsRead(message.id);
+                    return StreamBuilder<List<Message>>(
+                      stream: chatProvider.messagesStream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            showErrorMessage(
+                              context,
+                              '실시간 메시지 로딩 중 오류 발생: ${snapshot.error}',
+                            );
+                          });
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Text('메시지를 불러오는 데 실패했습니다.'),
+                                const SizedBox(height: UIConstants.spacingMedium),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    chatProvider.initialize();
+                                  },
+                                  child: const Text('재시도'),
+                                ),
+                              ],
+                            ),
+                          );
                         }
+                        if (!snapshot.hasData ||
+                            chatProvider.myLocalUserId == null) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        final messages = snapshot.data!;
 
-                        return ChatMessage(message: message, isMe: isMe, myLocalUserId: chatProvider.myLocalUserId!); // myLocalUserId 전달
+                        // 초기 로드 시 또는 메시지 추가 시 최하단으로 스크롤
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!scrollController.hasClients) return;
+
+                          // 초기 로드 시 무조건 최하단으로 스크롤
+                          if (_isInitialLoad) {
+                            scrollToBottom();
+                            setState(() => _isInitialLoad = false);
+                          } else if (scrollController
+                                      .position
+                                      .userScrollDirection ==
+                                  ScrollDirection.idle &&
+                              scrollController.position.pixels >=
+                                  scrollController.position.maxScrollExtent - 100) {
+                            // 사용자가 최하단 근처에 있을 때만 자동 스크롤
+                            scrollToBottom();
+                          }
+                        });
+
+                        return ListView.builder(
+                          key: const ValueKey('chatListView'), // 고유한 키 추가
+                          controller: scrollController,
+                          itemCount: messages.length,
+                          addAutomaticKeepAlives: false, // 불필요한 최적화 비활성화
+                          addRepaintBoundaries: false, // 불필요한 최적화 비활성화
+                          itemBuilder: (context, index) {
+                            final message = messages[index];
+                            final isMe =
+                                message.localUserId == chatProvider.myLocalUserId;
+
+                            // 메시지가 화면에 보일 때 읽음 처리
+                            if (!isMe &&
+                                !message.readBy.contains(
+                                  chatProvider.myLocalUserId,
+                                )) {
+                              chatProvider.markMessageAsRead(message.id);
+                            }
+
+                            return ChatMessage(
+                              message: message,
+                              isMe: isMe,
+                              myLocalUserId: chatProvider.myLocalUserId!,
+                            ); // myLocalUserId 전달
+                          },
+                        );
                       },
                     );
                   },
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(UIConstants.spacingMedium),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Focus(
-                    onKeyEvent: (node, event) {
-                      if (event is KeyDownEvent &&
-                          event.logicalKey == LogicalKeyboardKey.enter) {
-                        final Set<LogicalKeyboardKey> pressed =
-                            HardwareKeyboard.instance.logicalKeysPressed;
-                        final bool isModifierPressed =
-                            pressed.contains(LogicalKeyboardKey.controlLeft) ||
-                            pressed.contains(LogicalKeyboardKey.controlRight) ||
-                            pressed.contains(LogicalKeyboardKey.shiftLeft) ||
-                            pressed.contains(LogicalKeyboardKey.shiftRight);
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(UIConstants.spacingMedium),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Focus(
+                        onKeyEvent: (node, event) {
+                          if (event is KeyDownEvent &&
+                              event.logicalKey == LogicalKeyboardKey.enter) {
+                            final Set<LogicalKeyboardKey> pressed =
+                                HardwareKeyboard.instance.logicalKeysPressed;
+                            final bool isModifierPressed =
+                                pressed.contains(LogicalKeyboardKey.controlLeft) ||
+                                pressed.contains(LogicalKeyboardKey.controlRight) ||
+                                pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                                pressed.contains(LogicalKeyboardKey.shiftRight);
 
-                        if (isModifierPressed) {
-                          final currentVal = _messageController.value;
-                          final newText =
-                              '${currentVal.text.substring(0, currentVal.selection.start)}\n${currentVal.text.substring(currentVal.selection.end)}';
-                          _messageController.value = TextEditingValue(
-                            text: newText,
-                            selection: TextSelection.collapsed(
-                              offset: currentVal.selection.start + 1,
+                            if (isModifierPressed) {
+                              final currentVal = _messageController.value;
+                              final newText =
+                                  '${currentVal.text.substring(0, currentVal.selection.start)}\n${currentVal.text.substring(currentVal.selection.end)}';
+                              _messageController.value = TextEditingValue(
+                                text: newText,
+                                selection: TextSelection.collapsed(
+                                  offset: currentVal.selection.start + 1,
+                                ),
+                              );
+                            } else {
+                              if (!_isMessageEmpty) _sendMessage();
+                            }
+                            return KeyEventResult.handled;
+                          }
+                          return KeyEventResult.ignored;
+                        },
+                        child: TextField(
+                          controller: _messageController,
+                          focusNode: _focusNode, // focusNode 할당
+                          minLines: 1,
+                          maxLines: 5,
+                          decoration: const InputDecoration(
+                            hintText: '메시지를 입력하세요',
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: UIConstants.messageInputHorizontalPadding,
+                              vertical: UIConstants.messageInputVerticalPadding,
                             ),
-                          );
-                        } else {
-                          if (!_isMessageEmpty) _sendMessage();
-                        }
-                        return KeyEventResult.handled;
-                      }
-                      return KeyEventResult.ignored;
-                    },
-                    child: TextField(
-                      controller: _messageController,
-                      focusNode: _focusNode, // focusNode 할당
-                      minLines: 1,
-                      maxLines: 5,
-                      decoration: const InputDecoration(
-                        hintText: '메시지를 입력하세요',
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: UIConstants.messageInputHorizontalPadding,
-                          vertical: UIConstants.messageInputVerticalPadding,
+                          ),
+                          keyboardType: TextInputType.multiline,
+                          onTapOutside: (event) => FocusScope.of(context).unfocus(),
                         ),
                       ),
-                      keyboardType: TextInputType.multiline,
-                      onTapOutside: (event) => FocusScope.of(context).unfocus(),
                     ),
-                  ),
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: _isMessageEmpty ? null : _sendMessage,
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _isMessageEmpty ? null : _sendMessage,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (showScrollToBottomButton)
+            Positioned(
+              bottom: kToolbarHeight + UIConstants.spacingMedium, // 메시지 입력 필드 위에 위치
+              left: 0.0, // 왼쪽 정렬
+              right: 0.0, // 오른쪽 정렬
+              child: Center(
+                child: FloatingActionButton(
+                  onPressed: scrollToBottom,
+                  child: const Icon(Icons.arrow_downward),
+                ),
+              ),
+            ),
         ],
       ),
-      floatingActionButton: showScrollToBottomButton
-          ? FloatingActionButton(
-              onPressed: scrollToBottom,
-              child: const Icon(Icons.arrow_downward),
-            )
-          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: null, // Stack에서 직접 관리하므로 null로 설정
     );
   }
 }
