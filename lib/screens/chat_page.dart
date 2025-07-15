@@ -147,8 +147,11 @@ class _ChatPageState extends State<ChatPage>
                     });
 
                     return ListView.builder(
+                      key: const ValueKey('chatListView'), // 고유한 키 추가
                       controller: scrollController,
                       itemCount: messages.length,
+                      addAutomaticKeepAlives: false, // 불필요한 최적화 비활성화
+                      addRepaintBoundaries: false, // 불필요한 최적화 비활성화
                       itemBuilder: (context, index) {
                         final message = messages[index];
                         final isMe =
