@@ -156,7 +156,13 @@ class _ChatPageState extends State<ChatPage>
                         final message = messages[index];
                         final isMe =
                             message.localUserId == chatProvider.myLocalUserId;
-                        return ChatMessage(message: message, isMe: isMe);
+
+                        // 메시지가 화면에 보일 때 읽음 처리
+                        if (!isMe && !message.readBy.contains(chatProvider.myLocalUserId)) {
+                          chatProvider.markMessageAsRead(message.id);
+                        }
+
+                        return ChatMessage(message: message, isMe: isMe, myLocalUserId: chatProvider.myLocalUserId!); // myLocalUserId 전달
                       },
                     );
                   },

@@ -134,4 +134,41 @@ class ChatProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> markMessageAsRead(String messageId) async {
+    if (_myLocalUserId == null) return;
+
+    try {
+      // 1. 메시지 가져오기
+      final List<dynamic> response = await _supabase
+          .from(AppConstants.messagesTableName)
+          .select('read_by')
+          .eq('id', messageId)
+          .limit(1);
+
+      if (response.isEmpty) return; // 메시지를 찾을 수 없음
+
+      final currentReadBy = (response[0]['read_by'] as List<dynamic>? ?? []).map((e) => e.toString()).toList();
+
+      // 2. 이미 읽었는지 확인
+      if (currentReadBy.contains(_myLocalUserId)) {
+        return; // 이미 읽음 처리됨
+      }
+
+      // 3. 사용자 ID 추가
+      final newReadBy = List<String>.from(currentReadBy);
+      newReadBy.add(_myLocalUserId!);
+
+      // 4. 메시지 업데이트
+      await _supabase.from(AppConstants.messagesTableName).update({
+        'read_by': newReadBy,
+      }).eq('id', messageId);
+    } catch (e) {
+      _error = '메시지 읽음 처리 실패: $e';
+      if (kDebugMode) {
+        print(_error);
+      }
+      rethrow;
+    }
+  }
 }

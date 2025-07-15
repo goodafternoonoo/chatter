@@ -8,10 +8,12 @@ class ChatMessage extends StatelessWidget {
     super.key,
     required this.message,
     required this.isMe,
+    required this.myLocalUserId, // myLocalUserId 추가
   });
 
   final Message message;
   final bool isMe;
+  final String myLocalUserId; // myLocalUserId 필드 추가
 
   String _formatTimestamp(DateTime timestamp) {
     final now = DateTime.now();
@@ -50,6 +52,17 @@ class ChatMessage extends StatelessWidget {
             ),
             const SizedBox(width: UIConstants.spacingMedium),
           ],
+          if (isMe) // 내가 보낸 메시지일 때만 읽음/안읽음 표시
+            Padding(
+              padding: const EdgeInsets.only(right: UIConstants.spacingSmall, bottom: UIConstants.spacingSmall / 2), // 말풍선과의 간격 및 하단 정렬
+              child: Text(
+                message.readBy.any((id) => id != myLocalUserId) ? '읽음' : '1', // 읽음/안읽음 표시
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: Theme.of(context).colorScheme.primary, // 눈에 띄는 색상으로 변경
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+            ),
           Flexible(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: UIConstants.chatBubbleVerticalPadding, horizontal: UIConstants.chatBubbleHorizontalPadding),
