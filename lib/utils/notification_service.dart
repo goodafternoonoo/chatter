@@ -19,7 +19,7 @@ class NotificationService {
   }
 
   static Future<void> showNotification({
-    required int id,
+    required int notificationId,
     required String title,
     required String body,
   }) async {
@@ -28,7 +28,7 @@ class NotificationService {
     );
 
     await _flutterLocalNotificationsPlugin.show(
-      id,
+      notificationId,
       title,
       body,
       platformChannelSpecifics,

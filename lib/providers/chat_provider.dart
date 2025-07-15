@@ -43,7 +43,7 @@ class ChatProvider with ChangeNotifier {
           if (latestMessage.localUserId != _myLocalUserId &&
               WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
             NotificationService.showNotification(
-              id: latestMessage.id.hashCode, // 메시지 ID를 기반으로 고유 ID 생성
+              notificationId: roomId.hashCode, // 채팅방 ID를 기반으로 고유 ID 생성
               title: latestMessage.sender,
               body: latestMessage.content,
             );
