@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart'; // WidgetsBinding, AppLifecycleState 사용을 위해 추가
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
@@ -38,8 +39,9 @@ class ChatProvider with ChangeNotifier {
       _messageSubscription = messagesStream.listen((messages) {
         if (messages.isNotEmpty) {
           final latestMessage = messages.last;
-          // 내가 보낸 메시지가 아닐 때만 알림 표시
-          if (latestMessage.localUserId != _myLocalUserId) {
+          // 내가 보낸 메시지가 아니고, 앱이 백그라운드에 있을 때만 알림 표시
+          if (latestMessage.localUserId != _myLocalUserId &&
+              WidgetsBinding.instance.lifecycleState != AppLifecycleState.resumed) {
             NotificationService.showNotification(
               id: latestMessage.id.hashCode, // 메시지 ID를 기반으로 고유 ID 생성
               title: latestMessage.sender,
