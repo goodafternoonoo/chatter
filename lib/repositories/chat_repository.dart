@@ -28,6 +28,7 @@ class ChatRepository {
         .from(AppConstants.messagesTableName)
         .select()
         .eq('room_id', roomId)
+        .eq('is_deleted', false) // is_deleted 필터 추가
         .order('created_at', ascending: false) // 최신순으로 정렬
         .limit(limit);
 
@@ -43,6 +44,7 @@ class ChatRepository {
         .from(AppConstants.messagesTableName)
         .select()
         .eq('room_id', roomId)
+        .eq('is_deleted', false) // is_deleted 필터 추가
         // .lt()에서 .lte()로 변경하여 동일 시간의 메시지를 포함시키고,
         // .toUtc()를 호출하여 Dart의 DateTime을 DB의 TIMESTAMPTZ와 일치하는
         // UTC 시간으로 변환합니다. 이것이 Timezone 문제의 핵심 해결책입니다.
@@ -64,7 +66,15 @@ class ChatRepository {
       'content': content,
       'local_user_id': localUserId,
       'image_url': imageUrl,
+      'is_deleted': false, // 메시지 전송 시 is_deleted 기본값 설정
     });
+  }
+
+  Future<void> markMessageAsDeleted(String messageId) async {
+    await _supabase
+        .from(AppConstants.messagesTableName)
+        .update({'is_deleted': true})
+        .eq('id', messageId);
   }
 
   Future<String> uploadImage(XFile imageFile) async {

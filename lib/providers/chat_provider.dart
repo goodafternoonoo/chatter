@@ -89,7 +89,8 @@ class ChatProvider with ChangeNotifier {
             .where(
               (m) =>
                   !existingIds.contains(m.id) &&
-                  m.createdAt.isAfter(latestMessageInList),
+                  m.createdAt.isAfter(latestMessageInList) &&
+                  !m.isDeleted, // isDeleted 필터 추가
             )
             .toList();
 
@@ -213,6 +214,32 @@ class ChatProvider with ChangeNotifier {
       await _chatRepository.markMessageAsRead(messageId, _myLocalUserId!);
     } catch (e) {
       _error = '메시지 읽음 처리 실패: $e';
+      if (kDebugMode) {
+        print(e);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> deleteMessage(String messageId) async {
+    try {
+      await _chatRepository.markMessageAsDeleted(messageId);
+      // 로컬 메시지 목록에서 해당 메시지를 isDeleted = true로 업데이트
+      final index = _messages.indexWhere((msg) => msg.id == messageId);
+      if (index != -1) {
+        _messages[index] = Message(
+          id: _messages[index].id,
+          content: _messages[index].content,
+          localUserId: _messages[index].localUserId,
+          createdAt: _messages[index].createdAt,
+          readBy: _messages[index].readBy,
+          imageUrl: _messages[index].imageUrl,
+          isDeleted: true, // isDeleted 필드를 true로 설정
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      _error = '메시지 삭제 실패: $e';
       if (kDebugMode) {
         print(e);
       }
