@@ -16,8 +16,41 @@ class ChatRepository {
         .from(AppConstants.messagesTableName)
         .stream(primaryKey: ['id'])
         .eq('room_id', roomId)
-        .order('created_at', ascending: true)
+        .order('created_at', ascending: false)
         .map((data) => data.map((item) => Message.fromJson(item)).toList());
+  }
+
+  Future<List<Message>> fetchLatestMessages({
+    required String roomId,
+    int limit = 20,
+  }) async {
+    final response = await _supabase
+        .from(AppConstants.messagesTableName)
+        .select()
+        .eq('room_id', roomId)
+        .order('created_at', ascending: false) // 최신순으로 정렬
+        .limit(limit);
+
+    return response.map((item) => Message.fromJson(item)).toList();
+  }
+
+  Future<List<Message>> fetchPreviousMessages({
+    required String roomId,
+    required DateTime cursor,
+    int limit = 20,
+  }) async {
+    final response = await _supabase
+        .from(AppConstants.messagesTableName)
+        .select()
+        .eq('room_id', roomId)
+        // .lt()에서 .lte()로 변경하여 동일 시간의 메시지를 포함시키고,
+        // .toUtc()를 호출하여 Dart의 DateTime을 DB의 TIMESTAMPTZ와 일치하는
+        // UTC 시간으로 변환합니다. 이것이 Timezone 문제의 핵심 해결책입니다.
+        .lte('created_at', cursor.toUtc().toIso8601String())
+        .order('created_at', ascending: false) // 최신 순으로 정렬
+        .limit(limit);
+
+    return response.map((item) => Message.fromJson(item)).toList();
   }
 
   Future<void> sendMessage({

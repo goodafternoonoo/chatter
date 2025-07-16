@@ -3,11 +3,9 @@ import 'package:flutter/foundation.dart' as foundation;
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart'
     as emoji_picker_flutter;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/chat_message.dart';
-import 'package:my_chat_app/models/message.dart';
 import 'package:my_chat_app/models/theme_mode_provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/models/profile.dart'; // Profile 모델 임포트
@@ -31,7 +29,6 @@ class _ChatPageState extends State<ChatPage>
   final _messageController = TextEditingController();
   final _focusNode = FocusNode(); // FocusNode 추가
 
-  bool _isInitialLoad = true;
   bool _isMessageEmpty = true;
   bool _showEmojiPicker = false; // 이모티콘 선택기 표시 여부
 
@@ -46,6 +43,8 @@ class _ChatPageState extends State<ChatPage>
         });
       }
     });
+    // 스크롤 리스너 추가
+    scrollController.addListener(_onScroll);
   }
 
   @override
@@ -53,7 +52,20 @@ class _ChatPageState extends State<ChatPage>
     _messageController.removeListener(_onMessageChanged);
     _messageController.dispose();
     _focusNode.dispose(); // FocusNode 해제
+    // 스크롤 리스너 제거
+    scrollController.removeListener(_onScroll);
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels ==
+        scrollController.position.maxScrollExtent) {
+      // 스크롤이 최상단에 도달했을 때 (reverse: true 이므로 maxScrollExtent가 최상단)
+      final chatProvider = context.read<ChatProvider>();
+      if (chatProvider.hasMoreMessages && !chatProvider.isLoadingMore) {
+        chatProvider.loadMoreMessages();
+      }
+    }
   }
 
   void _onMessageChanged() {
@@ -128,102 +140,61 @@ class _ChatPageState extends State<ChatPage>
               Expanded(
                 child: Consumer<ChatProvider>(
                   builder: (context, chatProvider, child) {
-                    final profileProvider = context.watch<ProfileProvider>(); // ProfileProvider watch
+                    final profileProvider = context
+                        .watch<ProfileProvider>(); // ProfileProvider watch
 
                     if (chatProvider.error != null) {
                       return Center(child: Text('오류: ${chatProvider.error}'));
                     }
-                    if (!chatProvider.isInitialized || profileProvider.isLoading) {
+                    if (!chatProvider.isInitialized ||
+                        (chatProvider.messages.isEmpty &&
+                            !chatProvider.isLoadingMore)) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    return StreamBuilder<List<Message>>(
-                      stream: chatProvider.messagesStream,
-                      builder: (context, snapshot) {
-                        if (snapshot.hasError) {
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            showErrorMessage(
-                              context,
-                              '실시간 메시지 로딩 중 오류 발생: ${snapshot.error}',
-                            );
-                          });
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Text('메시지를 불러오는 데 실패했습니다.'),
-                                const SizedBox(
-                                  height: UIConstants.spacingMedium,
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    chatProvider.initialize();
-                                  },
-                                  child: const Text('재시도'),
-                                ),
-                              ],
+                    final messages = chatProvider.messages;
+
+                    return ListView.builder(
+                      key: const ValueKey('chatListView'),
+                      controller: scrollController,
+                      reverse: true,
+                      itemCount:
+                          messages.length +
+                          (chatProvider.isLoadingMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (chatProvider.isLoadingMore &&
+                            index == messages.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(),
                             ),
                           );
                         }
-                        if (!chatProvider.isInitialized || !snapshot.hasData) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
-                          );
+
+                        final message = messages[index];
+                        final isMe =
+                            message.localUserId == chatProvider.myLocalUserId;
+
+                        if (!isMe &&
+                            !message.readBy.contains(
+                              chatProvider.myLocalUserId,
+                            )) {
+                          chatProvider.markMessageAsRead(message.id);
                         }
-                        final messages = snapshot.data!;
 
-                        // 초기 로드 시 또는 메시지 추가 시 최하단으로 스크롤
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (!scrollController.hasClients) return;
-
-                          // 초기 로드 시 무조건 최하단으로 스크롤
-                          if (_isInitialLoad) {
-                            scrollToBottom();
-                            setState(() => _isInitialLoad = false);
-                          } else if (scrollController
-                                      .position
-                                      .userScrollDirection ==
-                                  ScrollDirection.idle &&
-                              scrollController.position.pixels >=
-                                  scrollController.position.maxScrollExtent -
-                                      100) {
-                            // 사용자가 최하단 근처에 있을 때만 자동 스크롤
-                            scrollToBottom();
-                          }
-                        });
-
-                        return ListView.builder(
-                          key: const ValueKey('chatListView'), // 고유한 키 추가
-                          controller: scrollController,
-                          itemCount: messages.length,
-                          addAutomaticKeepAlives: false, // 불필요한 최적화 비활성화
-                          addRepaintBoundaries: false, // 불필요한 최적화 비활성화
-                          itemBuilder: (context, index) {
-                            final message = messages[index];
-                            final isMe =
-                                message.localUserId ==
-                                chatProvider.myLocalUserId;
-
-                            // 메시지가 화면에 보일 때 읽음 처리
-                            if (!isMe &&
-                                !message.readBy.contains(
-                                  chatProvider.myLocalUserId,
-                                )) {
-                              chatProvider.markMessageAsRead(message.id);
-                            }
-
-                            return FutureBuilder<Profile?>(
-                              future: profileProvider.getProfileById(message.localUserId),
-                              builder: (context, profileSnapshot) {
-                                final Profile? senderProfile = profileSnapshot.data;
-                                return ChatMessage(
-                                  message: message,
-                                  isMe: isMe,
-                                  myLocalUserId: chatProvider.myLocalUserId!,
-                                  avatarUrl: isMe
-                                      ? profileProvider.currentProfile?.avatarUrl
-                                      : senderProfile?.avatarUrl, // 다른 사람 메시지일 때 해당 프로필의 아바타 URL 전달
-                                );
-                              },
+                        return FutureBuilder<Profile?>(
+                          future: profileProvider.getProfileById(
+                            message.localUserId,
+                          ),
+                          builder: (context, profileSnapshot) {
+                            final Profile? senderProfile = profileSnapshot.data;
+                            return ChatMessage(
+                              message: message,
+                              isMe: isMe,
+                              myLocalUserId: chatProvider.myLocalUserId!,
+                              avatarUrl: isMe
+                                  ? profileProvider.currentProfile?.avatarUrl
+                                  : senderProfile?.avatarUrl,
                             );
                           },
                         );
@@ -309,7 +280,9 @@ class _ChatPageState extends State<ChatPage>
                                       _pickImage(ImageSource.gallery);
                                     },
                                   ),
-                                  if (foundation.defaultTargetPlatform != TargetPlatform.windows) // Windows가 아닐 때만 카메라 옵션 표시
+                                  if (foundation.defaultTargetPlatform !=
+                                      TargetPlatform
+                                          .windows) // Windows가 아닐 때만 카메라 옵션 표시
                                     ListTile(
                                       leading: const Icon(Icons.camera_alt),
                                       title: const Text('카메라로 촬영'),
