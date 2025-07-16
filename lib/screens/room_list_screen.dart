@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart'; // go_router 임포트
 import 'package:my_chat_app/models/room.dart';
+import 'package:my_chat_app/utils/toast_utils.dart'; // ToastUtils 임포트
 
 class RoomListScreen extends StatefulWidget {
   const RoomListScreen({super.key});
@@ -17,14 +18,12 @@ class _RoomListScreenState extends State<RoomListScreen> {
   Future<void> _createRoom() async {
     final roomName = _newRoomController.text.trim();
     if (roomName.isNotEmpty) {
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
       try {
         await Supabase.instance.client.from('rooms').insert({'name': roomName});
         _newRoomController.clear();
       } catch (e) {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text('채팅방 생성에 실패했습니다: $e')),
-        );
+        if (!mounted) return;
+        ToastUtils.showToast(context, '채팅방 생성에 실패했습니다: $e');
       }
     }
   }
@@ -33,14 +32,10 @@ class _RoomListScreenState extends State<RoomListScreen> {
     try {
       await Supabase.instance.client.from('rooms').delete().eq('id', roomId);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('채팅방이 삭제되었습니다.')),
-      );
+      ToastUtils.showToast(context, '채팅방이 삭제되었습니다.');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('채팅방 삭제에 실패했습니다: $e')),
-      );
+      ToastUtils.showToast(context, '채팅방 삭제에 실패했습니다: $e');
     }
   }
 

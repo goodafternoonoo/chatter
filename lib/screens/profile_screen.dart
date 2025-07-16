@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트 예정
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
+import 'package:my_chat_app/utils/toast_utils.dart'; // ToastUtils 임포트
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -65,9 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           statusMessage: _statusMessageController.text.trim(),
         );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('프로필이 성공적으로 업데이트되었습니다.')),
-        );
+        ToastUtils.showToast(context, '프로필이 성공적으로 업데이트되었습니다.');
         context.pop(); // 저장 후 이전 화면으로 돌아가기
       } catch (e, s) {
         if (mounted) showErrorSnackBar(context, e, s);

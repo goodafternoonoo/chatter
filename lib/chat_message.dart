@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Clipboard 사용을 위한 임포트
 import 'package:intl/intl.dart';
+import 'package:my_chat_app/utils/toast_utils.dart';
 import 'models/message.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
 
@@ -101,9 +102,7 @@ class ChatMessage extends StatelessWidget {
                             onTap: () {
                               Clipboard.setData(ClipboardData(text: message.content));
                               Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('메시지가 복사되었습니다.')),
-                              );
+                              ToastUtils.showToast(context, '메시지가 복사되었습니다.');
                             },
                           ),
                           if (isMe && onDelete != null) // 내가 보낸 메시지일 때만 삭제 옵션 제공
