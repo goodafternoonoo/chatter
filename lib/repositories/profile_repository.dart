@@ -12,7 +12,7 @@ class ProfileRepository {
   Future<Profile?> getMyProfile(String userId) async {
     final response = await _supabase
         .from('profiles')
-        .select()
+        .select('id, nickname, avatar_url, status_message, last_seen, is_online')
         .eq('id', userId)
         .maybeSingle(); // single() 대신 maybeSingle() 사용
 
@@ -23,6 +23,18 @@ class ProfileRepository {
   // 프로필 삽입 또는 업데이트 (upsert)
   Future<void> upsertProfile(Profile profile) async {
     await _supabase.from('profiles').upsert(profile.toJson());
+  }
+
+  // 사용자 온라인 상태 업데이트
+  Future<void> updateUserPresence({
+    required String userId,
+    required bool isOnline,
+    DateTime? lastSeen,
+  }) async {
+    await _supabase.from('profiles').update({
+      'is_online': isOnline,
+      'last_seen': lastSeen?.toIso8601String() ?? DateTime.now().toIso8601String(),
+    }).eq('id', userId);
   }
 
   // 아바타 이미지 업로드
@@ -48,7 +60,7 @@ class ProfileRepository {
   Future<Profile?> getProfileById(String userId) async {
     final response = await _supabase
         .from('profiles')
-        .select()
+        .select('id, nickname, avatar_url, status_message, last_seen, is_online')
         .eq('id', userId)
         .maybeSingle();
 

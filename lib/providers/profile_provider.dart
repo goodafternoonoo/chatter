@@ -7,7 +7,7 @@ import 'package:my_chat_app/repositories/profile_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // SharedPreferences 임포트
 import 'package:uuid/uuid.dart'; // Uuid 임포트
 
-class ProfileProvider with ChangeNotifier {
+class ProfileProvider with ChangeNotifier, WidgetsBindingObserver {
   final ProfileRepository _profileRepository;
   Profile? _currentProfile;
   bool _isLoading = false;
@@ -25,7 +25,28 @@ class ProfileProvider with ChangeNotifier {
   ProfileProvider({
     ProfileRepository? profileRepository,
   }) : _profileRepository =
-           profileRepository ?? ProfileRepository(Supabase.instance.client);
+           profileRepository ?? ProfileRepository(Supabase.instance.client) {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_localUserId == null) return; // 사용자 ID가 없으면 처리하지 않음
+
+    if (state == AppLifecycleState.resumed) {
+      // 앱이 포그라운드로 돌아올 때 온라인 상태로 설정
+      updateUserPresence(isOnline: true);
+    } else if (state == AppLifecycleState.paused) {
+      // 앱이 백그라운드로 갈 때 오프라인 상태로 설정하고 마지막 활동 시간 기록
+      updateUserPresence(isOnline: false, lastSeen: DateTime.now());
+    }
+  }
 
   Future<void> initialize() async {
     _localUserId = await _loadLocalUserId();
@@ -88,6 +109,8 @@ class ProfileProvider with ChangeNotifier {
 
     try {
       _currentProfile = await _profileRepository.getMyProfile(userId);
+      // 프로필 로드 후 온라인 상태로 설정
+      await _profileRepository.updateUserPresence(userId: userId, isOnline: true);
     } catch (e) {
       _error = '프로필 로딩에 실패했습니다: $e';
     } finally {
@@ -114,6 +137,8 @@ class ProfileProvider with ChangeNotifier {
         nickname: nickname ?? _currentProfile?.nickname ?? '',
         avatarUrl: _currentProfile?.avatarUrl,
         statusMessage: statusMessage ?? _currentProfile?.statusMessage,
+        lastSeen: _currentProfile?.lastSeen,
+        isOnline: _currentProfile?.isOnline ?? false,
       );
       await _profileRepository.upsertProfile(newProfile);
       await loadProfile(); // 업데이트된 프로필 정보를 다시 로드
@@ -144,6 +169,8 @@ class ProfileProvider with ChangeNotifier {
         nickname: _currentProfile?.nickname ?? '',
         avatarUrl: imageUrl,
         statusMessage: _currentProfile?.statusMessage,
+        lastSeen: _currentProfile?.lastSeen,
+        isOnline: _currentProfile?.isOnline ?? false,
       );
       await _profileRepository.upsertProfile(newProfile);
       await loadProfile(); // 업데이트된 프로필 정보를 다시 로드
@@ -152,6 +179,23 @@ class ProfileProvider with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // 사용자 온라인 상태 업데이트 (내부용)
+  Future<void> updateUserPresence({required bool isOnline, DateTime? lastSeen}) async {
+    if (_localUserId == null) return;
+    try {
+      await _profileRepository.updateUserPresence(
+        userId: _localUserId!,
+        isOnline: isOnline,
+        lastSeen: lastSeen,
+      );
+      // 로컬 캐시 업데이트
+      _currentProfile = _currentProfile?.copyWith(isOnline: isOnline, lastSeen: lastSeen ?? DateTime.now());
+      notifyListeners();
+    } catch (e) {
+      log('Error updating user presence', name: 'ProfileProvider', error: e);
     }
   }
 }

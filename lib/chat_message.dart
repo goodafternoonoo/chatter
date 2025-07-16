@@ -13,6 +13,8 @@ class ChatMessage extends StatelessWidget {
     required this.myLocalUserId,
     required this.senderNickname, // senderNickname 추가
     this.avatarUrl, // avatarUrl 추가
+    required this.isOnline, // isOnline 추가
+    this.lastSeen, // lastSeen 추가
     this.onDelete, // onDelete 콜백 추가
   });
 
@@ -21,6 +23,8 @@ class ChatMessage extends StatelessWidget {
   final String myLocalUserId;
   final String senderNickname; // senderNickname 필드 추가
   final String? avatarUrl; // avatarUrl 필드 추가
+  final bool isOnline; // isOnline 필드 추가
+  final DateTime? lastSeen; // lastSeen 필드 추가
   final VoidCallback? onDelete; // onDelete 콜백 필드 추가
 
   String _formatTimestamp(DateTime timestamp) {
@@ -52,21 +56,39 @@ class ChatMessage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isMe) ...[
-            CircleAvatar(
-              radius: UIConstants.avatarRadius,
-              backgroundImage: avatarUrl != null
-                  ? NetworkImage(avatarUrl!)
-                  : null,
-              backgroundColor: Colors.grey[400],
-              child: avatarUrl == null
-                  ? Text(
-                      senderNickname.isNotEmpty ? senderNickname[0] : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: UIConstants.avatarRadius,
+                  backgroundImage: avatarUrl != null
+                      ? NetworkImage(avatarUrl!)
+                      : null,
+                  backgroundColor: Colors.grey[400],
+                  child: avatarUrl == null
+                      ? Text(
+                          senderNickname.isNotEmpty ? senderNickname[0] : '?',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                ),
+                if (isOnline) // 온라인 상태 표시
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
-                    )
-                  : null,
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(width: UIConstants.spacingMedium),
           ],
@@ -302,20 +324,38 @@ class ChatMessage extends StatelessWidget {
           ),
           if (isMe) ...[
             const SizedBox(width: UIConstants.spacingMedium),
-            CircleAvatar(
-              radius: UIConstants.avatarRadius,
-              backgroundImage: avatarUrl != null
-                  ? NetworkImage(avatarUrl!)
-                  : null,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: avatarUrl == null
-                  ? Text(
-                      senderNickname.isNotEmpty ? senderNickname[0] : '?',
-                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimary,
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: UIConstants.avatarRadius,
+                  backgroundImage: avatarUrl != null
+                      ? NetworkImage(avatarUrl!)
+                      : null,
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: avatarUrl == null
+                      ? Text(
+                          senderNickname.isNotEmpty ? senderNickname[0] : '?',
+                          style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        )
+                      : null,
+                ),
+                if (isOnline) // 온라인 상태 표시
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
-                    )
-                  : null,
+                    ),
+                  ),
+              ],
             ),
           ],
         ],

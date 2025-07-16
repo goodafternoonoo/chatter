@@ -197,6 +197,8 @@ class _ChatPageState extends State<ChatPage>
                               avatarUrl: isMe
                                   ? profileProvider.currentProfile?.avatarUrl
                                   : senderProfile?.avatarUrl,
+                              isOnline: senderProfile?.isOnline ?? false, // isOnline 추가
+                              lastSeen: senderProfile?.lastSeen, // lastSeen 추가
                               onDelete: isMe && !message.isDeleted
                                   ? () => chatProvider.deleteMessage(message.id)
                                   : null,
