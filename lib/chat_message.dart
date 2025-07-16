@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Clipboard 사용을 위한 임포트
 import 'package:intl/intl.dart';
 import 'models/message.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
@@ -87,29 +88,57 @@ class ChatMessage extends StatelessWidget {
           Flexible(
             child: GestureDetector(
               onLongPress: () {
-                if (onDelete != null && isMe) {
-                  // 내가 보낸 메시지일 때만 삭제 옵션 제공
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('메시지 삭제'),
-                      content: const Text('이 메시지를 삭제하시겠습니까?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('취소'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            onDelete!();
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('삭제'),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return SafeArea(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          ListTile(
+                            leading: const Icon(Icons.copy),
+                            title: const Text('복사'),
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(text: message.content));
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('메시지가 복사되었습니다.')),
+                              );
+                            },
+                          ),
+                          if (isMe && onDelete != null) // 내가 보낸 메시지일 때만 삭제 옵션 제공
+                            ListTile(
+                              leading: const Icon(Icons.delete),
+                              title: const Text('삭제'),
+                              onTap: () {
+                                Navigator.pop(context);
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('메시지 삭제'),
+                                    content: const Text('이 메시지를 삭제하시겠습니까?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(),
+                                        child: const Text('취소'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          onDelete!();
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text('삭제'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                );
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(
