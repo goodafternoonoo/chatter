@@ -4,18 +4,17 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart';
 import '../models/message.dart';
-import 'package:my_chat_app/constants/app_constants.dart';
 import 'package:my_chat_app/utils/notification_service.dart';
 import 'package:my_chat_app/repositories/chat_repository.dart';
+import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트
 
 class ChatProvider with ChangeNotifier {
   final String roomId;
   final ChatRepository _chatRepository;
+  final ProfileProvider _profileProvider; // ProfileProvider 인스턴스 추가
 
   List<Message> _messages = [];
   StreamSubscription<List<Message>>? _messageSubscription;
-  String _currentNickname = AppConstants.defaultNickname;
-  String? _myLocalUserId;
   bool _isInitialized = false;
   String? _error;
   bool _isLoadingMore = false;
@@ -23,18 +22,15 @@ class ChatProvider with ChangeNotifier {
 
   // UI (ListView reverse:true)에 맞게 데이터는 최신순 -> 오래된순 으로 관리
   List<Message> get messages => _messages;
-  String get currentNickname => _currentNickname;
-  String? get myLocalUserId => _myLocalUserId;
   bool get isInitialized => _isInitialized;
   bool get isLoadingMore => _isLoadingMore;
   bool get hasMoreMessages => _hasMoreMessages;
   String? get error => _error;
-  bool get shouldShowNicknameDialog =>
-      _isInitialized && _currentNickname == AppConstants.defaultNickname;
 
-  ChatProvider({required this.roomId, ChatRepository? chatRepository})
+  ChatProvider({required this.roomId, ChatRepository? chatRepository, required ProfileProvider profileProvider})
     : _chatRepository =
-          chatRepository ?? ChatRepository(Supabase.instance.client);
+          chatRepository ?? ChatRepository(Supabase.instance.client),
+      _profileProvider = profileProvider;
 
   @override
   void dispose() {
@@ -44,9 +40,6 @@ class ChatProvider with ChangeNotifier {
 
   Future<void> initialize() async {
     try {
-      _myLocalUserId = await _chatRepository.loadLocalUserId();
-      _currentNickname =
-          await _chatRepository.loadNickname() ?? AppConstants.defaultNickname;
       await _fetchInitialMessages();
       _subscribeToNewMessages();
       _isInitialized = true;
@@ -98,12 +91,12 @@ class ChatProvider with ChangeNotifier {
           _messages = _sortAndDeduplicateMessages(_messages + trulyNewMessages);
 
           final latestMessage = _messages.first;
-          if (latestMessage.localUserId != _myLocalUserId &&
+          if (latestMessage.localUserId != _profileProvider.currentLocalUserId &&
               WidgetsBinding.instance.lifecycleState !=
                   AppLifecycleState.resumed) {
             NotificationService.showNotification(
               notificationId: roomId.hashCode,
-              title: latestMessage.localUserId,
+              title: _profileProvider.currentProfile?.nickname ?? latestMessage.localUserId,
               body: latestMessage.content,
             );
           }
@@ -160,22 +153,8 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  Future<void> saveNickname(String nickname) async {
-    if (nickname.trim().isEmpty) return;
-    try {
-      await _chatRepository.saveNickname(nickname.trim());
-      _currentNickname = nickname.trim();
-      _error = null;
-    } catch (e) {
-      _error = '닉네임 저장에 실패했습니다: $e';
-      rethrow;
-    } finally {
-      notifyListeners();
-    }
-  }
-
   Future<void> sendMessage(String content, {String? imageUrl}) async {
-    if (content.trim().isEmpty && imageUrl == null || _myLocalUserId == null) {
+    if (content.trim().isEmpty && imageUrl == null || _profileProvider.currentLocalUserId == null) {
       return;
     }
 
@@ -183,7 +162,7 @@ class ChatProvider with ChangeNotifier {
       await _chatRepository.sendMessage(
         roomId: roomId,
         content: content.trim(),
-        localUserId: _myLocalUserId!,
+        localUserId: _profileProvider.currentLocalUserId!,
         imageUrl: imageUrl,
       );
     } catch (e) {
@@ -208,10 +187,10 @@ class ChatProvider with ChangeNotifier {
   }
 
   Future<void> markMessageAsRead(String messageId) async {
-    if (_myLocalUserId == null) return;
+    if (_profileProvider.currentLocalUserId == null) return;
 
     try {
-      await _chatRepository.markMessageAsRead(messageId, _myLocalUserId!);
+      await _chatRepository.markMessageAsRead(messageId, _profileProvider.currentLocalUserId!);
     } catch (e) {
       _error = '메시지 읽음 처리 실패: $e';
       if (kDebugMode) {

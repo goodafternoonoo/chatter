@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
+import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트
+import 'package:my_chat_app/constants/app_constants.dart'; // AppConstants 임포트
 import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _checkNicknameAndNavigate() async {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final chatProvider = context.read<ChatProvider>();
+      final profileProvider = context.read<ProfileProvider>(); // ProfileProvider 가져오기
       try {
         // ChatProvider가 초기화될 때까지 기다립니다.
         // 이 부분은 ChatProvider의 initialize()가 main.dart에서 호출되도록 변경되었으므로
@@ -40,15 +43,13 @@ class _SplashScreenState extends State<SplashScreen> {
           throw Exception(chatProvider.error);
         }
 
-        if (chatProvider.shouldShowNicknameDialog) {
+        if (profileProvider.currentNickname == AppConstants.defaultNickname) {
           context.go('/nickname');
         } else {
           context.go('/rooms');
         }
-      } catch (e, s) {
+      } catch (e) {
         if (kDebugMode) {
-          print('초기화 오류: $e');
-          print(s);
         }
         if (mounted) {
           setState(() {

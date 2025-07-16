@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:uuid/uuid.dart';
 import '../models/message.dart';
 import '../constants/app_constants.dart';
 
@@ -119,27 +117,5 @@ class ChatRepository {
         .from(AppConstants.messagesTableName)
         .update({'read_by': newReadBy})
         .eq('id', messageId);
-  }
-
-  // SharedPreferences 관련 로직은 ChatProvider에 유지합니다.
-  // 이는 로컬 저장소에 대한 책임이 ChatProvider에 더 가깝기 때문입니다.
-  Future<String?> loadLocalUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? localUserId = prefs.getString('local_user_id');
-    if (localUserId == null) {
-      localUserId = const Uuid().v4();
-      await prefs.setString('local_user_id', localUserId);
-    }
-    return localUserId;
-  }
-
-  Future<String?> loadNickname() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('nickname');
-  }
-
-  Future<void> saveNickname(String nickname) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('nickname', nickname);
   }
 }

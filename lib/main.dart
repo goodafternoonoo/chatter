@@ -65,8 +65,8 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeModeProvider()),
-        ChangeNotifierProvider(create: (context) => ChatProvider(roomId: '')..initialize()),
-        ChangeNotifierProvider(create: (context) => ProfileProvider(chatProvider: context.read<ChatProvider>())..loadProfile()), // ProfileProvider 추가
+        ChangeNotifierProvider(create: (context) => ProfileProvider()..initialize()), // ProfileProvider 먼저 초기화
+        ChangeNotifierProvider(create: (context) => ChatProvider(roomId: '', profileProvider: context.read<ProfileProvider>())..initialize()), // ChatProvider에 ProfileProvider 전달
       ],
       child: const MyApp(),
     ),

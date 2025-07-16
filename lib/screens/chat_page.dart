@@ -173,11 +173,11 @@ class _ChatPageState extends State<ChatPage>
 
                         final message = messages[index];
                         final isMe =
-                            message.localUserId == chatProvider.myLocalUserId;
+                            message.localUserId == profileProvider.currentLocalUserId;
 
                         if (!isMe &&
                             !message.readBy.contains(
-                              chatProvider.myLocalUserId,
+                              profileProvider.currentLocalUserId,
                             )) {
                           chatProvider.markMessageAsRead(message.id);
                         }
@@ -191,7 +191,7 @@ class _ChatPageState extends State<ChatPage>
                             return ChatMessage(
                               message: message,
                               isMe: isMe,
-                              myLocalUserId: chatProvider.myLocalUserId!,
+                              myLocalUserId: profileProvider.currentLocalUserId!,
                               senderNickname:
                                   senderProfile?.nickname ?? '알 수 없음',
                               avatarUrl: isMe
