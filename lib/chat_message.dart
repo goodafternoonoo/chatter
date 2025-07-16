@@ -9,12 +9,14 @@ class ChatMessage extends StatelessWidget {
     required this.message,
     required this.isMe,
     required this.myLocalUserId,
+    required this.senderNickname, // senderNickname 추가
     this.avatarUrl, // avatarUrl 추가
   });
 
   final Message message;
   final bool isMe;
   final String myLocalUserId;
+  final String senderNickname; // senderNickname 필드 추가
   final String? avatarUrl; // avatarUrl 필드 추가
 
   String _formatTimestamp(DateTime timestamp) {
@@ -47,7 +49,7 @@ class ChatMessage extends StatelessWidget {
               backgroundColor: Colors.grey[400],
               child: avatarUrl == null
                   ? Text(
-                      message.sender.isNotEmpty ? message.sender[0] : '?',
+                      senderNickname.isNotEmpty ? senderNickname[0] : '?',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -96,7 +98,7 @@ class ChatMessage extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        message.sender,
+                        senderNickname,
                         style: Theme.of(context).textTheme.labelMedium!.copyWith(
                               color: isMe
                                   ? Theme.of(context).colorScheme.onPrimaryContainer
@@ -160,7 +162,7 @@ class ChatMessage extends StatelessWidget {
               backgroundColor: Theme.of(context).colorScheme.primary,
               child: avatarUrl == null
                   ? Text(
-                      message.sender.isNotEmpty ? message.sender[0] : '?',
+                      senderNickname.isNotEmpty ? senderNickname[0] : '?',
                       style: Theme.of(context).textTheme.labelLarge!.copyWith(
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),

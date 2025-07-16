@@ -129,8 +129,9 @@ class ChatProvider with ChangeNotifier {
     if (_isLoadingMore ||
         !_hasMoreMessages ||
         roomId.isEmpty ||
-        _messages.isEmpty)
+        _messages.isEmpty) {
       return;
+    }
 
     _isLoadingMore = true;
     notifyListeners();
