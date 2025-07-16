@@ -56,14 +56,12 @@ class ChatRepository {
   Future<void> sendMessage({
     required String roomId,
     required String content,
-    required String sender,
     required String localUserId,
     String? imageUrl,
   }) async {
     await _supabase.from(AppConstants.messagesTableName).insert({
       'room_id': roomId,
       'content': content,
-      'sender': sender,
       'local_user_id': localUserId,
       'image_url': imageUrl,
     });

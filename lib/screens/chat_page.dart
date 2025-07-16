@@ -193,7 +193,7 @@ class _ChatPageState extends State<ChatPage>
                               isMe: isMe,
                               myLocalUserId: chatProvider.myLocalUserId!,
                               senderNickname:
-                                  senderProfile?.nickname ?? message.sender,
+                                  senderProfile?.nickname ?? '알 수 없음',
                               avatarUrl: isMe
                                   ? profileProvider.currentProfile?.avatarUrl
                                   : senderProfile?.avatarUrl,

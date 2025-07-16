@@ -102,7 +102,7 @@ class ChatProvider with ChangeNotifier {
                   AppLifecycleState.resumed) {
             NotificationService.showNotification(
               notificationId: roomId.hashCode,
-              title: latestMessage.sender,
+              title: latestMessage.localUserId,
               body: latestMessage.content,
             );
           }
@@ -182,7 +182,6 @@ class ChatProvider with ChangeNotifier {
       await _chatRepository.sendMessage(
         roomId: roomId,
         content: content.trim(),
-        sender: _currentNickname,
         localUserId: _myLocalUserId!,
         imageUrl: imageUrl,
       );

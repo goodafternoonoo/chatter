@@ -2,7 +2,6 @@
 class Message {
   final String id;
   final String content;
-  final String sender;
   final String localUserId;
   final DateTime createdAt;
   final List<String> readBy; // read_by 필드 추가
@@ -11,7 +10,6 @@ class Message {
   Message({
     required this.id,
     required this.content,
-    required this.sender,
     required this.localUserId,
     required this.createdAt,
     required this.readBy, // read_by 필드 추가
@@ -22,7 +20,6 @@ class Message {
     return Message(
       id: json['id'] as String,
       content: json['content'] as String,
-      sender: json['sender'] as String,
       localUserId: json['local_user_id'] as String,
       createdAt: DateTime.parse(json['created_at'] as String).toLocal(),
       readBy: (json['read_by'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(), // read_by 파싱
