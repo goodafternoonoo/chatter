@@ -10,7 +10,7 @@ class ChatMessage extends StatelessWidget {
     super.key,
     required this.message,
     required this.isMe,
-    required this.myLocalUserId,
+    this.myLocalUserId,
     required this.senderNickname, // senderNickname 추가
     this.avatarUrl, // avatarUrl 추가
     required this.isOnline, // isOnline 추가
@@ -20,7 +20,7 @@ class ChatMessage extends StatelessWidget {
 
   final Message message;
   final bool isMe;
-  final String myLocalUserId;
+  final String? myLocalUserId;
   final String senderNickname; // senderNickname 필드 추가
   final String? avatarUrl; // avatarUrl 필드 추가
   final bool isOnline; // isOnline 필드 추가
@@ -209,9 +209,9 @@ class ChatMessage extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                     children: [
-                      if (isMe)
+                      if (isMe && myLocalUserId != null)
                         Text(
-                          message.readBy.any((id) => id != myLocalUserId) ? '읽음' : '읽지 않음',
+                          message.readBy.any((id) => id != myLocalUserId!) ? '읽음' : '읽지 않음',
                           style: textTheme.bodySmall?.copyWith(
                             color: colorScheme.primary,
                             fontWeight: FontWeight.bold,
@@ -242,6 +242,14 @@ class ChatMessage extends StatelessWidget {
   Widget _buildAvatar(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+
+    if (senderNickname == '탈퇴한 사용자') {
+      return CircleAvatar(
+        radius: UIConstants.avatarRadius,
+        backgroundColor: colorScheme.surfaceContainerHighest,
+        child: Icon(Icons.person_off, color: colorScheme.onSurfaceVariant),
+      );
+    }
 
     return Stack(
       children: [

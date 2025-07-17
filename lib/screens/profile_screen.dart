@@ -73,7 +73,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (_isInitialSetup) {
           context.go('/rooms');
         } else {
-          context.pop();
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/rooms'); // Fallback to rooms if nothing to pop
+          }
         }
       } catch (e, s) {
         if (mounted) showErrorSnackBar(context, e, s);

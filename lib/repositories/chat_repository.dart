@@ -55,8 +55,8 @@ class ChatRepository {
 
   Future<void> sendMessage({
     required String roomId,
-    required String content,
-    required String localUserId,
+    required String? content,
+    required String? localUserId,
     String? imageUrl,
   }) async {
     await _supabase.from(AppConstants.messagesTableName).insert({
@@ -93,7 +93,8 @@ class ChatRepository {
     return publicUrl;
   }
 
-  Future<void> markMessageAsRead(String messageId, String localUserId) async {
+  Future<void> markMessageAsRead(String messageId, String? localUserId) async {
+    if (localUserId == null) return;
     final List<dynamic> response = await _supabase
         .from(AppConstants.messagesTableName)
         .select('read_by')

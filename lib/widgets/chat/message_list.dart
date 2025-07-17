@@ -43,22 +43,28 @@ class MessageList extends StatelessWidget {
             itemCount: searchResults.length,
             itemBuilder: (context, index) {
               final message = searchResults[index];
-              final isMe = message.localUserId == profileProvider.currentLocalUserId;
+              final isMe =
+                  message.localUserId != null &&
+                  message.localUserId == profileProvider.currentLocalUserId;
 
               return FutureBuilder<Profile?>(
-                future: profileProvider.getProfileById(message.localUserId),
+                future: message.localUserId == null
+                    ? Future.value(null)
+                    : profileProvider.getProfileById(message.localUserId!),
                 builder: (context, profileSnapshot) {
                   final Profile? senderProfile = profileSnapshot.data;
                   return ChatMessage(
                     message: message,
                     isMe: isMe,
-                    myLocalUserId: profileProvider.currentLocalUserId!,
-                    senderNickname: senderProfile?.nickname ?? '알 수 없음',
-                    avatarUrl: isMe
-                        ? profileProvider.currentProfile?.avatarUrl
-                        : senderProfile?.avatarUrl,
-                    isOnline: senderProfile?.isOnline ?? false,
-                    lastSeen: senderProfile?.lastSeen,
+                    myLocalUserId: profileProvider.currentLocalUserId ?? '',
+                    senderNickname: message.localUserId == null ? '탈퇴한 사용자' : (senderProfile?.nickname ?? '알 수 없음'),
+                    avatarUrl: message.localUserId == null
+                        ? null
+                        : (isMe
+                            ? profileProvider.currentProfile?.avatarUrl
+                            : senderProfile?.avatarUrl),
+                    isOnline: message.localUserId == null ? false : (senderProfile?.isOnline ?? false),
+                    lastSeen: message.localUserId == null ? null : senderProfile?.lastSeen,
                     onDelete: isMe && !message.isDeleted
                         ? () => chatProvider.deleteMessage(message.id)
                         : null,
@@ -82,28 +88,36 @@ class MessageList extends StatelessWidget {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(color: colorScheme.primary),
+                    child: CircularProgressIndicator(
+                      color: colorScheme.primary,
+                    ),
                   ),
                 );
               }
 
               final message = messages[index];
-              final isMe = message.localUserId == profileProvider.currentLocalUserId;
+              final isMe =
+                  message.localUserId != null &&
+                  message.localUserId == profileProvider.currentLocalUserId;
 
               return FutureBuilder<Profile?>(
-                future: profileProvider.getProfileById(message.localUserId),
+                future: message.localUserId == null
+                    ? Future.value(null)
+                    : profileProvider.getProfileById(message.localUserId!),
                 builder: (context, profileSnapshot) {
                   final Profile? senderProfile = profileSnapshot.data;
                   return ChatMessage(
                     message: message,
                     isMe: isMe,
-                    myLocalUserId: profileProvider.currentLocalUserId!,
-                    senderNickname: senderProfile?.nickname ?? '알 수 없음',
-                    avatarUrl: isMe
-                        ? profileProvider.currentProfile?.avatarUrl
-                        : senderProfile?.avatarUrl,
-                    isOnline: senderProfile?.isOnline ?? false,
-                    lastSeen: senderProfile?.lastSeen,
+                    myLocalUserId: profileProvider.currentLocalUserId ?? '',
+                    senderNickname: message.localUserId == null ? '탈퇴한 사용자' : (senderProfile?.nickname ?? '알 수 없음'),
+                    avatarUrl: message.localUserId == null
+                        ? null
+                        : (isMe
+                            ? profileProvider.currentProfile?.avatarUrl
+                            : senderProfile?.avatarUrl),
+                    isOnline: message.localUserId == null ? false : (senderProfile?.isOnline ?? false),
+                    lastSeen: message.localUserId == null ? null : senderProfile?.lastSeen,
                     onDelete: isMe && !message.isDeleted
                         ? () => chatProvider.deleteMessage(message.id)
                         : null,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트
-import 'package:my_chat_app/constants/app_constants.dart'; // AppConstants 임포트
+
 import 'package:go_router/go_router.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -43,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
           throw Exception(chatProvider.error);
         }
 
-        if (profileProvider.currentNickname == AppConstants.defaultNickname) {
+        if (profileProvider.currentProfile == null) {
           context.go('/profile');
         } else {
           context.go('/rooms');

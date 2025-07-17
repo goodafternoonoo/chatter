@@ -33,10 +33,13 @@ class ChatProvider with ChangeNotifier {
   List<Message> get searchResults => _searchResults; // 검색 결과 getter 추가
   bool get isSearching => _isSearching; // 검색 중 상태 getter 추가
 
-  ChatProvider({required this.roomId, ChatRepository? chatRepository, required ProfileProvider profileProvider})
-    : _chatRepository =
-          chatRepository ?? ChatRepository(Supabase.instance.client),
-      _profileProvider = profileProvider;
+  ChatProvider({
+    required this.roomId,
+    ChatRepository? chatRepository,
+    required ProfileProvider profileProvider,
+  }) : _chatRepository =
+           chatRepository ?? ChatRepository(Supabase.instance.client),
+       _profileProvider = profileProvider;
 
   @override
   void dispose() {
@@ -86,13 +89,17 @@ class ChatProvider with ChangeNotifier {
         final List<Message> trulyNewMessages = [];
 
         for (var newMessage in newMessages) {
-          final existingMessageIndex = _messages.indexWhere((m) => m.id == newMessage.id);
+          final existingMessageIndex = _messages.indexWhere(
+            (m) => m.id == newMessage.id,
+          );
           if (existingMessageIndex != -1) {
             // 기존 메시지인 경우, readBy 필드 업데이트 여부 확인
-            if (_messages[existingMessageIndex].readBy.length != newMessage.readBy.length) {
+            if (_messages[existingMessageIndex].readBy.length !=
+                newMessage.readBy.length) {
               messagesToUpdate.add(newMessage);
             }
-          } else if (newMessage.createdAt.isAfter(latestMessageInList) && !newMessage.isDeleted) {
+          } else if (newMessage.createdAt.isAfter(latestMessageInList) &&
+              !newMessage.isDeleted) {
             // 새로운 메시지인 경우
             trulyNewMessages.add(newMessage);
           }
@@ -104,19 +111,25 @@ class ChatProvider with ChangeNotifier {
 
           // 기존 메시지 업데이트
           for (var updatedMsg in messagesToUpdate) {
-            final index = _messages.indexWhere((msg) => msg.id == updatedMsg.id);
+            final index = _messages.indexWhere(
+              (msg) => msg.id == updatedMsg.id,
+            );
             if (index != -1) {
               _messages[index] = updatedMsg;
             }
           }
 
           final latestMessage = _messages.first;
-          if (latestMessage.localUserId != _profileProvider.currentLocalUserId &&
+          if (latestMessage.localUserId !=
+                  _profileProvider.currentLocalUserId &&
               WidgetsBinding.instance.lifecycleState !=
                   AppLifecycleState.resumed) {
             NotificationService.showNotification(
               notificationId: roomId.hashCode,
-              title: _profileProvider.currentProfile?.nickname ?? latestMessage.localUserId,
+              title:
+                  _profileProvider.currentProfile?.nickname ??
+                  latestMessage.localUserId ??
+                  '알 수 없음',
               body: latestMessage.content,
             );
           }
@@ -174,7 +187,10 @@ class ChatProvider with ChangeNotifier {
   }
 
   Future<void> sendMessage(String content, {String? imageUrl}) async {
-    if (content.trim().isEmpty && imageUrl == null || _profileProvider.currentLocalUserId == null) {
+    if (_profileProvider.currentLocalUserId == null) {
+      return;
+    }
+    if (content.trim().isEmpty && imageUrl == null) {
       return;
     }
 
@@ -182,7 +198,7 @@ class ChatProvider with ChangeNotifier {
       await _chatRepository.sendMessage(
         roomId: roomId,
         content: content.trim(),
-        localUserId: _profileProvider.currentLocalUserId!,
+        localUserId: _profileProvider.currentLocalUserId,
         imageUrl: imageUrl,
       );
     } catch (e) {
@@ -210,7 +226,10 @@ class ChatProvider with ChangeNotifier {
     if (_profileProvider.currentLocalUserId == null) return;
 
     try {
-      await _chatRepository.markMessageAsRead(messageId, _profileProvider.currentLocalUserId!);
+      await _chatRepository.markMessageAsRead(
+        messageId,
+        _profileProvider.currentLocalUserId,
+      );
     } catch (e) {
       _error = '메시지 읽음 처리 실패: $e';
       if (kDebugMode) {
@@ -223,11 +242,12 @@ class ChatProvider with ChangeNotifier {
   Future<void> markAllMessagesAsRead() async {
     if (_profileProvider.currentLocalUserId == null) return;
 
-    final currentUserId = _profileProvider.currentLocalUserId!;
+    final currentUserId = _profileProvider.currentLocalUserId;
     final List<Message> messagesToUpdate = [];
 
     for (var message in _messages) {
-      if (message.localUserId != currentUserId && !message.readBy.contains(currentUserId)) {
+      if (message.localUserId != currentUserId &&
+          !message.readBy.contains(currentUserId)) {
         messagesToUpdate.add(message);
       }
     }
@@ -245,7 +265,8 @@ class ChatProvider with ChangeNotifier {
             content: _messages[index].content,
             localUserId: _messages[index].localUserId,
             createdAt: _messages[index].createdAt,
-            readBy: List<String>.from(_messages[index].readBy)..add(currentUserId),
+            readBy: List<String>.from(_messages[index].readBy)
+              ..add(currentUserId!),
             imageUrl: _messages[index].imageUrl,
             isDeleted: _messages[index].isDeleted,
           );
@@ -299,7 +320,10 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _searchResults = await _chatRepository.searchMessages(roomId: roomId, query: _searchQuery);
+      _searchResults = await _chatRepository.searchMessages(
+        roomId: roomId,
+        query: _searchQuery,
+      );
     } catch (e) {
       _error = '메시지 검색에 실패했습니다: $e';
       if (kDebugMode) {
