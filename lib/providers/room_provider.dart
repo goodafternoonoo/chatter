@@ -35,19 +35,32 @@ class RoomProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     _roomSubscription = _roomRepository.getRoomStream().listen((rooms) async {
-      _rooms = rooms;
+      final List<Room> newRooms = [];
+      for (var room in rooms) {
+        final lastMessage = await _chatRepository.fetchLastMessageForRoom(room.id);
+        final unreadCount = await _calculateUnreadCount(room.id); // 읽지 않은 메시지 수 계산
+        newRooms.add(Room(
+          id: room.id,
+          name: room.name,
+          createdAt: room.createdAt,
+          unreadCount: unreadCount,
+          lastMessageContent: lastMessage?.content,
+          lastMessageCreatedAt: lastMessage?.createdAt,
+        ));
+      }
+      _rooms = newRooms;
       _isLoading = false;
       _error = null;
       notifyListeners();
 
       // 각 방의 메시지 스트림 구독 시작 또는 업데이트
-      for (var room in rooms) {
+      for (var room in _rooms) {
         _subscribeToRoomMessages(room.id);
       }
       // 더 이상 존재하지 않는 방의 구독 해지
       final List<String> roomsToRemove = [];
       for (var roomId in _messageSubscriptions.keys) {
-        if (!rooms.any((room) => room.id == roomId)) {
+        if (!_rooms.any((room) => room.id == roomId)) {
           roomsToRemove.add(roomId);
         }
       }
@@ -55,9 +68,6 @@ class RoomProvider with ChangeNotifier {
         _messageSubscriptions[roomId]?.cancel();
         _messageSubscriptions.remove(roomId);
       }
-
-      // 초기 읽지 않은 메시지 수 계산
-      await _updateAllRoomUnreadCounts();
 
     }, onError: (e) {
       _error = e.toString();
@@ -72,31 +82,17 @@ class RoomProvider with ChangeNotifier {
     }
 
     _messageSubscriptions[roomId] = _chatRepository.getMessagesStream(roomId).listen((messages) async {
-      // 메시지 스트림에서 변경이 감지되면 해당 방의 읽지 않은 메시지 수 업데이트
-      await _updateRoomUnreadCount(roomId);
+      // 메시지 스트림에서 변경이 감지되면 해당 방의 읽지 않은 메시지 수와 마지막 메시지 업데이트
+      await _updateRoomUnreadCountAndLastMessage(roomId);
     }, onError: (e) {
       // 메시지 스트림 에러 처리
       log('Error listening to messages for room $roomId', name: 'RoomProvider', error: e);
     });
   }
 
-  Future<void> _updateAllRoomUnreadCounts() async {
-    final updatedRooms = <Room>[];
-    for (var room in _rooms) {
-      final unreadCount = await _calculateUnreadCount(room.id);
-      updatedRooms.add(Room(
-        id: room.id,
-        name: room.name,
-        createdAt: room.createdAt,
-        unreadCount: unreadCount,
-      ));
-    }
-    _rooms = updatedRooms;
-    notifyListeners();
-  }
-
-  Future<void> _updateRoomUnreadCount(String roomId) async {
+  Future<void> _updateRoomUnreadCountAndLastMessage(String roomId) async {
     final unreadCount = await _calculateUnreadCount(roomId);
+    final lastMessage = await _chatRepository.fetchLastMessageForRoom(roomId);
     final index = _rooms.indexWhere((room) => room.id == roomId);
     if (index != -1) {
       _rooms[index] = Room(
@@ -104,6 +100,8 @@ class RoomProvider with ChangeNotifier {
         name: _rooms[index].name,
         createdAt: _rooms[index].createdAt,
         unreadCount: unreadCount,
+        lastMessageContent: lastMessage?.content,
+        lastMessageCreatedAt: lastMessage?.createdAt,
       );
       notifyListeners();
     }

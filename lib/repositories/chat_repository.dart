@@ -131,4 +131,30 @@ class ChatRepository {
 
     return response.map((item) => Message.fromJson(item)).toList();
   }
+
+  // 특정 방의 마지막 메시지 가져오기
+  Future<Message?> fetchLastMessageForRoom(String roomId) async {
+    final response = await _supabase
+        .from(AppConstants.messagesTableName)
+        .select('content, created_at, image_url, is_deleted')
+        .eq('room_id', roomId)
+        .order('created_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    if (response == null) return null;
+
+    // Message 객체로 변환 시 필요한 모든 필드를 포함하도록 수정
+    // 여기서는 content, created_at, image_url, is_deleted만 가져오므로
+    // Message.fromJson 대신 필요한 필드만 사용하여 Message 객체를 생성합니다.
+    return Message(
+      id: '', // ID는 필요 없으므로 빈 문자열
+      content: response['content'] as String? ?? '',
+      localUserId: '', // localUserId는 필요 없으므로 빈 문자열
+      createdAt: DateTime.parse(response['created_at'] as String).toLocal(),
+      readBy: [], // readBy는 필요 없으므로 빈 리스트
+      imageUrl: response['image_url'] as String?,
+      isDeleted: response['is_deleted'] as bool? ?? false,
+    );
+  }
 }
