@@ -26,9 +26,11 @@ class MessageList extends StatelessWidget {
         if (chatProvider.error != null) {
           return Center(child: Text('오류: ${chatProvider.error}'));
         }
-        if (!chatProvider.isInitialized ||
-            (chatProvider.messages.isEmpty && !chatProvider.isLoadingMore)) {
+        if (!chatProvider.isInitialized) {
           return const Center(child: CircularProgressIndicator());
+        }
+        if (chatProvider.messages.isEmpty && !chatProvider.isLoadingMore) {
+          return const Center(child: Text('대화를 시작해보세요!'));
         }
         final messages = chatProvider.messages;
         final searchResults = chatProvider.searchResults;
