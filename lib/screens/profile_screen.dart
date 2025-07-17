@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트 예정
+import 'package:my_chat_app/providers/profile_provider.dart';
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
-import 'package:my_chat_app/utils/toast_utils.dart'; // ToastUtils 임포트
+import 'package:my_chat_app/utils/toast_utils.dart';
+import 'package:my_chat_app/widgets/profile/profile_avatar.dart';
+import 'package:my_chat_app/widgets/profile/profile_form.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -26,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.initState();
     _profileProvider = context.read<ProfileProvider>();
     _profileProvider.addListener(_updateControllers);
-    _updateControllers(); // 초기 로드 시 값 설정
+    _updateControllers();
   }
 
   @override
@@ -48,9 +50,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (image != null) {
       if (!mounted) return;
-      final profileProvider = context.read<ProfileProvider>();
       try {
-        await profileProvider.uploadAvatar(image);
+        await _profileProvider.uploadAvatar(image);
       } catch (e, s) {
         if (mounted) showErrorSnackBar(context, e, s);
       }
@@ -59,15 +60,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      final profileProvider = context.read<ProfileProvider>();
       try {
-        await profileProvider.updateProfile(
+        await _profileProvider.updateProfile(
           nickname: _nicknameController.text.trim(),
           statusMessage: _statusMessageController.text.trim(),
         );
         if (!mounted) return;
         ToastUtils.showToast(context, '프로필이 성공적으로 업데이트되었습니다.');
-        context.pop(); // 저장 후 이전 화면으로 돌아가기
+        context.pop();
       } catch (e, s) {
         if (mounted) showErrorSnackBar(context, e, s);
       }
@@ -88,56 +88,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? Center(child: Text('오류: ${profileProvider.error}'))
               : Padding(
                   padding: const EdgeInsets.all(UIConstants.paddingMedium),
-                  child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
                   child: Column(
                     children: [
-                      GestureDetector(
+                      ProfileAvatar(
+                        avatarUrl: profileProvider.currentProfile?.avatarUrl,
                         onTap: _pickImage,
-                        child: CircleAvatar(
-                          radius: 60,
-                          backgroundImage: profileProvider.currentProfile?.avatarUrl != null
-                              ? NetworkImage(profileProvider.currentProfile!.avatarUrl!)
-                              : null,
-                          child: profileProvider.currentProfile?.avatarUrl == null
-                              ? const Icon(Icons.person, size: 60)
-                              : null,
-                        ),
                       ),
                       const SizedBox(height: UIConstants.spacingMedium),
-                      TextFormField(
-                        controller: _nicknameController,
-                        decoration: const InputDecoration(
-                          labelText: '닉네임',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return '닉네임을 입력해주세요.';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: UIConstants.spacingMedium),
-                      TextFormField(
-                        controller: _statusMessageController,
-                        decoration: const InputDecoration(
-                          labelText: '상태 메시지',
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: UIConstants.spacingMedium * 2),
-                      ElevatedButton(
-                        onPressed: _saveProfile,
-                        child: const Text('프로필 저장'),
+                      ProfileForm(
+                        formKey: _formKey,
+                        nicknameController: _nicknameController,
+                        statusMessageController: _statusMessageController,
+                        onSave: _saveProfile,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
     );
   }
 }
