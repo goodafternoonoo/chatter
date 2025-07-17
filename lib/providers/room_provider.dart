@@ -10,6 +10,7 @@ class RoomProvider with ChangeNotifier {
   final ProfileProvider _profileProvider;
   final ChatRepository _chatRepository;
   StreamSubscription<List<Room>>? _roomSubscription;
+  Map<String, StreamSubscription<List<dynamic>>> _messageSubscriptions = {}; // 각 방의 메시지 스트림 구독 관리
   List<Room> _rooms = [];
   bool _isLoading = true;
   String? _error;
@@ -33,25 +34,72 @@ class RoomProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     _roomSubscription = _roomRepository.getRoomStream().listen((rooms) async {
-      final updatedRooms = <Room>[];
-      for (var room in rooms) {
-        final unreadCount = await _calculateUnreadCount(room.id);
-        updatedRooms.add(Room(
-          id: room.id,
-          name: room.name,
-          createdAt: room.createdAt,
-          unreadCount: unreadCount,
-        ));
-      }
-      _rooms = updatedRooms;
+      _rooms = rooms;
       _isLoading = false;
       _error = null;
       notifyListeners();
+
+      // 각 방의 메시지 스트림 구독 시작 또는 업데이트
+      for (var room in rooms) {
+        _subscribeToRoomMessages(room.id);
+      }
+      // 더 이상 존재하지 않는 방의 구독 해지
+      _messageSubscriptions.keys.where((roomId) => !rooms.any((room) => room.id == roomId)).forEach((roomId) {
+        _messageSubscriptions[roomId]?.cancel();
+        _messageSubscriptions.remove(roomId);
+      });
+
+      // 초기 읽지 않은 메시지 수 계산
+      await _updateAllRoomUnreadCounts();
+
     }, onError: (e) {
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
     });
+  }
+
+  void _subscribeToRoomMessages(String roomId) {
+    if (_messageSubscriptions.containsKey(roomId)) {
+      return; // 이미 구독 중이면 다시 구독하지 않음
+    }
+
+    _messageSubscriptions[roomId] = _chatRepository.getMessagesStream(roomId).listen((messages) async {
+      // 메시지 스트림에서 변경이 감지되면 해당 방의 읽지 않은 메시지 수 업데이트
+      await _updateRoomUnreadCount(roomId);
+    }, onError: (e) {
+      // 메시지 스트림 에러 처리
+      print('Error listening to messages for room $roomId: $e');
+    });
+  }
+
+  Future<void> _updateAllRoomUnreadCounts() async {
+    final updatedRooms = <Room>[];
+    for (var room in _rooms) {
+      final unreadCount = await _calculateUnreadCount(room.id);
+      updatedRooms.add(Room(
+        id: room.id,
+        name: room.name,
+        createdAt: room.createdAt,
+        unreadCount: unreadCount,
+      ));
+    }
+    _rooms = updatedRooms;
+    notifyListeners();
+  }
+
+  Future<void> _updateRoomUnreadCount(String roomId) async {
+    final unreadCount = await _calculateUnreadCount(roomId);
+    final index = _rooms.indexWhere((room) => room.id == roomId);
+    if (index != -1) {
+      _rooms[index] = Room(
+        id: _rooms[index].id,
+        name: _rooms[index].name,
+        createdAt: _rooms[index].createdAt,
+        unreadCount: unreadCount,
+      );
+      notifyListeners();
+    }
   }
 
   Future<int> _calculateUnreadCount(String roomId) async {
@@ -91,6 +139,8 @@ class RoomProvider with ChangeNotifier {
   @override
   void dispose() {
     _roomSubscription?.cancel();
+    _messageSubscriptions.values.forEach((subscription) => subscription.cancel());
+    _messageSubscriptions.clear();
     super.dispose();
   }
 }
