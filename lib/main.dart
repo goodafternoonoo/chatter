@@ -11,6 +11,8 @@ import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider
 import 'dart:developer'; // dart:developer 임포트
 import 'package:flutter/foundation.dart'; // kDebugMode 사용을 위한 임포트
 import 'package:my_chat_app/routes/app_router.dart'; // app_router 임포트
+import 'package:my_chat_app/repositories/room_repository.dart';
+import 'package:my_chat_app/providers/room_provider.dart';
 
 
 void main() async {
@@ -67,6 +69,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => ThemeModeProvider()),
         ChangeNotifierProvider(create: (context) => ProfileProvider()..initialize()), // ProfileProvider 먼저 초기화
         ChangeNotifierProvider(create: (context) => ChatProvider(roomId: '', profileProvider: context.read<ProfileProvider>())..initialize()), // ChatProvider에 ProfileProvider 전달
+        ChangeNotifierProvider(create: (context) => RoomProvider(roomRepository: RoomRepository())),
       ],
       child: const MyApp(),
     ),

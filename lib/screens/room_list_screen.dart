@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:my_chat_app/models/room.dart';
+import 'package:provider/provider.dart';
+import 'package:my_chat_app/providers/room_provider.dart';
 import 'package:my_chat_app/utils/toast_utils.dart';
 import 'package:my_chat_app/widgets/room/room_list_item.dart';
 import 'package:my_chat_app/widgets/room/create_room_bottom_sheet.dart';
@@ -14,17 +14,13 @@ class RoomListScreen extends StatefulWidget {
 }
 
 class _RoomListScreenState extends State<RoomListScreen> {
-  final _roomStream = Supabase.instance.client
-      .from('rooms')
-      .stream(primaryKey: ['id']).map(
-          (maps) => maps.map((map) => Room.fromMap(map)).toList());
   final _newRoomController = TextEditingController();
 
   Future<void> _createRoom() async {
     final roomName = _newRoomController.text.trim();
     if (roomName.isNotEmpty) {
       try {
-        await Supabase.instance.client.from('rooms').insert({'name': roomName});
+        await context.read<RoomProvider>().createRoom(roomName);
         _newRoomController.clear();
       } catch (e) {
         if (!mounted) return;
@@ -35,7 +31,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
 
   Future<void> _deleteRoom(String roomId) async {
     try {
-      await Supabase.instance.client.from('rooms').delete().eq('id', roomId);
+      await context.read<RoomProvider>().deleteRoom(roomId);
       if (!mounted) return;
       ToastUtils.showToast(context, '채팅방이 삭제되었습니다.');
     } catch (e) {
@@ -94,16 +90,15 @@ class _RoomListScreenState extends State<RoomListScreen> {
           ),
         ],
       ),
-      body: StreamBuilder<List<Room>>(
-        stream: _roomStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Consumer<RoomProvider>(
+        builder: (context, roomProvider, child) {
+          if (roomProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
-            return Center(child: Text('오류가 발생했습니다: ${snapshot.error}'));
+          if (roomProvider.error != null) {
+            return Center(child: Text('오류가 발생했습니다: ${roomProvider.error}'));
           }
-          final rooms = snapshot.data!;
+          final rooms = roomProvider.rooms;
           return ListView.builder(
             itemCount: rooms.length,
             itemBuilder: (context, index) {
