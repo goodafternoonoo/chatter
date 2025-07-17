@@ -67,4 +67,14 @@ class ProfileRepository {
     if (response == null) return null;
     return Profile.fromJson(response);
   }
+
+  // 특정 사용자 프로필 변경 스트림 가져오기
+  Stream<Profile> getProfileStreamById(String userId) {
+    return _supabase
+        .from('profiles')
+        .stream(primaryKey: ['id'])
+        .eq('id', userId)
+        .limit(1)
+        .map((data) => Profile.fromJson(data.first));
+  }
 }

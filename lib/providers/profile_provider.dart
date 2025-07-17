@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer'; // dart:developer 임포트
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,6 +14,7 @@ class ProfileProvider with ChangeNotifier, WidgetsBindingObserver {
   bool _isLoading = false;
   String? _error;
   final Map<String, Profile> _profileCache = {}; // 프로필 캐시 추가
+  final Map<String, StreamSubscription<Profile>> _profileSubscriptions = {}; // 프로필 스트림 구독 관리
   String? _localUserId; // 로컬 사용자 ID 필드 추가
   String _currentNickname = '알 수 없음'; // 현재 닉네임 필드 추가
 
@@ -32,6 +34,10 @@ class ProfileProvider with ChangeNotifier, WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    for (var subscription in _profileSubscriptions.values) {
+      subscription.cancel();
+    }
+    _profileSubscriptions.clear();
     super.dispose();
   }
 
@@ -76,22 +82,38 @@ class ProfileProvider with ChangeNotifier, WidgetsBindingObserver {
     notifyListeners();
   }
 
-  // 특정 사용자 ID로 프로필 가져오기 (캐시 사용)
+  // 특정 사용자 ID로 프로필 가져오기 (캐시 및 실시간 스트림 사용)
   Future<Profile?> getProfileById(String userId) async {
     if (_profileCache.containsKey(userId)) {
       return _profileCache[userId];
     }
 
+    // 캐시에 없으면 먼저 한 번 가져오기
     try {
       final profile = await _profileRepository.getProfileById(userId);
       if (profile != null) {
         _profileCache[userId] = profile;
+        notifyListeners(); // 캐시 업데이트 알림
       }
-      return profile;
     } catch (e) {
-      log('Error fetching profile for $userId', name: 'ProfileProvider', error: e); // 에러 로깅
+      log('Error fetching profile for $userId', name: 'ProfileProvider', error: e);
       return null;
     }
+
+    // 실시간 스트림 구독 (아직 구독하지 않았다면)
+    if (!_profileSubscriptions.containsKey(userId)) {
+      _profileSubscriptions[userId] = _profileRepository.getProfileStreamById(userId).listen(
+        (profile) {
+          _profileCache[userId] = profile;
+          notifyListeners(); // 스트림 업데이트 알림
+        },
+        onError: (e) {
+          log('Error listening to profile stream for $userId', name: 'ProfileProvider', error: e);
+        },
+      );
+    }
+
+    return _profileCache[userId];
   }
 
   Future<void> loadProfile() async {
