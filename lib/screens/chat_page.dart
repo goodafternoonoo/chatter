@@ -51,6 +51,9 @@ class _ChatPageState extends State<ChatPage>
     });
     // 스크롤 리스너 추가
     scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _focusNode.requestFocus();
+    });
   }
 
   @override
@@ -126,7 +129,33 @@ class _ChatPageState extends State<ChatPage>
   Widget build(BuildContext context) {
     final themeModeProvider = context.watch<ThemeModeProvider>();
 
-    return Scaffold(
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.keyF &&
+            (HardwareKeyboard.instance.isControlPressed ||
+                HardwareKeyboard.instance.isMetaPressed)) {
+          setState(() {
+            _showSearchField = true;
+            _searchFocusNode.requestFocus();
+          });
+          return KeyEventResult.handled;
+        }
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.escape) {
+          if (_showSearchField) {
+            setState(() {
+              _showSearchField = false;
+              _searchController.clear();
+            });
+            _focusNode.requestFocus();
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('실시간 채팅'),
         actions: [
@@ -183,6 +212,7 @@ class _ChatPageState extends State<ChatPage>
                           onSubmitted: (value) {
                             final chatProvider = context.read<ChatProvider>();
                             chatProvider.searchMessages(value);
+                            _searchFocusNode.requestFocus(); // 검색 후 포커스 유지
                           },
                         ),
                       ),
@@ -508,6 +538,7 @@ class _ChatPageState extends State<ChatPage>
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: null, // Stack에서 직접 관리하므로 null로 설정
+    ),
     );
   }
 }
