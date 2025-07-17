@@ -25,7 +25,6 @@ class SearchField extends StatelessWidget {
               focusNode: searchFocusNode,
               decoration: InputDecoration(
                 hintText: '검색어를 입력하세요',
-                border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
