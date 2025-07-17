@@ -60,7 +60,6 @@ class _NicknameScreenState extends State<NicknameScreen> {
                   decoration: const InputDecoration(
                     labelText: '닉네임',
                     hintText: '사용하실 닉네임을 입력하세요',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {

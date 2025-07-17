@@ -23,4 +23,5 @@ class UIConstants {
   static const double avatarRadius = 18.0;
   static const double spacingSmall = 4.0;
   static const double spacingMedium = 8.0;
+  static const double cardElevation = 1.0;
 }

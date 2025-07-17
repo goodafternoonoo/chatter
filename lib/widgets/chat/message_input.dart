@@ -34,107 +34,129 @@ class MessageInput extends StatefulWidget {
 class _MessageInputState extends State<MessageInput> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.all(UIConstants.spacingMedium),
-          child: Row(
-            children: [
-              Expanded(
-                child: Focus(
-                  onKeyEvent: (node, event) {
-                    if (event is KeyDownEvent &&
-                        event.logicalKey == LogicalKeyboardKey.enter) {
-                      final Set<LogicalKeyboardKey> pressed =
-                          HardwareKeyboard.instance.logicalKeysPressed;
-                      final bool isModifierPressed =
-                          pressed.contains(LogicalKeyboardKey.controlLeft) ||
-                              pressed.contains(LogicalKeyboardKey.controlRight) ||
-                              pressed.contains(LogicalKeyboardKey.shiftLeft) ||
-                              pressed.contains(LogicalKeyboardKey.shiftRight);
-
-                      if (isModifierPressed) {
-                        final currentVal = widget.messageController.value;
-                        final newText =
-                            '${currentVal.text.substring(0, currentVal.selection.start)}\n${currentVal.text.substring(currentVal.selection.end)}';
-                        widget.messageController.value = TextEditingValue(
-                          text: newText,
-                          selection: TextSelection.collapsed(
-                            offset: currentVal.selection.start + 1,
-                          ),
-                        );
-                      } else {
-                        if (!widget.isMessageEmpty) widget.onSendMessage();
-                      }
-                      return KeyEventResult.handled;
-                    }
-                    return KeyEventResult.ignored;
-                  },
-                  child: TextField(
-                    controller: widget.messageController,
-                    focusNode: widget.focusNode,
-                    minLines: 1,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      hintText: '메시지를 입력하세요',
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: UIConstants.messageInputHorizontalPadding,
-                        vertical: UIConstants.messageInputVerticalPadding,
-                      ),
-                    ),
-                    keyboardType: TextInputType.multiline,
-                    onTapOutside: (event) => FocusScope.of(context).unfocus(),
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.image),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return SafeArea(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: <Widget>[
-                            ListTile(
-                              leading: const Icon(Icons.photo_library),
-                              title: const Text('갤러리에서 선택'),
-                              onTap: () {
-                                context.pop();
-                                widget.onPickImage(ImageSource.gallery);
-                              },
-                            ),
-                            if (foundation.defaultTargetPlatform !=
-                                TargetPlatform.windows)
+        Card(
+          margin: const EdgeInsets.all(UIConstants.spacingMedium),
+          elevation: UIConstants.cardElevation,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(
+              UIConstants.borderRadiusCircular,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: UIConstants.spacingSmall,
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.image, color: colorScheme.onSurfaceVariant),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return SafeArea(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
                               ListTile(
-                                leading: const Icon(Icons.camera_alt),
-                                title: const Text('카메라로 촬영'),
+                                leading: const Icon(Icons.photo_library),
+                                title: const Text('갤러리에서 선택'),
                                 onTap: () {
                                   context.pop();
-                                  widget.onPickImage(ImageSource.camera);
+                                  widget.onPickImage(ImageSource.gallery);
                                 },
                               ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-              IconButton(
-                icon: Icon(
-                  widget.showEmojiPicker
-                      ? Icons.keyboard
-                      : Icons.emoji_emotions,
+                              if (foundation.defaultTargetPlatform !=
+                                  TargetPlatform.windows)
+                                ListTile(
+                                  leading: const Icon(Icons.camera_alt),
+                                  title: const Text('카메라로 촬영'),
+                                  onTap: () {
+                                    context.pop();
+                                    widget.onPickImage(ImageSource.camera);
+                                  },
+                                ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
-                onPressed: widget.onToggleEmojiPicker,
-              ),
-              IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: widget.isMessageEmpty ? null : widget.onSendMessage,
-              ),
-            ],
+                IconButton(
+                  icon: Icon(
+                    widget.showEmojiPicker
+                        ? Icons.keyboard
+                        : Icons.emoji_emotions,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  onPressed: widget.onToggleEmojiPicker,
+                ),
+                Expanded(
+                  child: Focus(
+                    onKeyEvent: (node, event) {
+                      if (event is KeyDownEvent &&
+                          event.logicalKey == LogicalKeyboardKey.enter) {
+                        final Set<LogicalKeyboardKey> pressed =
+                            HardwareKeyboard.instance.logicalKeysPressed;
+                        final bool isModifierPressed =
+                            pressed.contains(LogicalKeyboardKey.controlLeft) ||
+                            pressed.contains(LogicalKeyboardKey.controlRight) ||
+                            pressed.contains(LogicalKeyboardKey.shiftLeft) ||
+                            pressed.contains(LogicalKeyboardKey.shiftRight);
+
+                        if (isModifierPressed) {
+                          final currentVal = widget.messageController.value;
+                          final newText =
+                              '${currentVal.text.substring(0, currentVal.selection.start)} ${currentVal.text.substring(currentVal.selection.end)}';
+                          widget.messageController.value = TextEditingValue(
+                            text: newText,
+                            selection: TextSelection.collapsed(
+                              offset: currentVal.selection.start + 1,
+                            ),
+                          );
+                        } else {
+                          if (!widget.isMessageEmpty) widget.onSendMessage();
+                        }
+                        return KeyEventResult.handled;
+                      }
+                      return KeyEventResult.ignored;
+                    },
+                    child: TextField(
+                      controller: widget.messageController,
+                      focusNode: widget.focusNode,
+                      minLines: 1,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        hintText: '메시지를 입력하세요',
+                        border:
+                            InputBorder.none, // Remove default TextField border
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: UIConstants.messageInputHorizontalPadding,
+                          vertical: UIConstants.messageInputVerticalPadding,
+                        ),
+                        fillColor: colorScheme
+                            .surfaceContainerHighest, // Use theme's input fill color
+                        filled:
+                            true, // Ensure filled is true for the fill color to apply
+                      ),
+                      keyboardType: TextInputType.multiline,
+                      onTapOutside: (event) => FocusScope.of(context).unfocus(),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.send, color: colorScheme.primary),
+                  onPressed: widget.isMessageEmpty
+                      ? null
+                      : widget.onSendMessage,
+                ),
+              ],
+            ),
           ),
         ),
         Offstage(
@@ -148,7 +170,8 @@ class _MessageInputState extends State<MessageInput> {
                 height: 250,
                 checkPlatformCompatibility: true,
                 emojiViewConfig: emoji_picker_flutter.EmojiViewConfig(
-                  emojiSizeMax: 28 *
+                  emojiSizeMax:
+                      28 *
                       (foundation.defaultTargetPlatform == TargetPlatform.iOS
                           ? 1.20
                           : 1.0),
@@ -156,15 +179,14 @@ class _MessageInputState extends State<MessageInput> {
                 skinToneConfig: const emoji_picker_flutter.SkinToneConfig(),
                 categoryViewConfig: emoji_picker_flutter.CategoryViewConfig(
                   initCategory: emoji_picker_flutter.Category.RECENT,
-                  indicatorColor: Theme.of(context).colorScheme.primary,
-                  iconColor: Colors.grey,
-                  iconColorSelected: Theme.of(context).colorScheme.primary,
-                  backspaceColor: Theme.of(context).colorScheme.primary,
+                  indicatorColor: colorScheme.primary,
+                  iconColor: colorScheme.onSurfaceVariant,
+                  iconColorSelected: colorScheme.primary,
+                  backspaceColor: colorScheme.primary,
                 ),
                 bottomActionBarConfig:
                     const emoji_picker_flutter.BottomActionBarConfig(),
-                searchViewConfig:
-                    const emoji_picker_flutter.SearchViewConfig(),
+                searchViewConfig: const emoji_picker_flutter.SearchViewConfig(),
               ),
             ),
           ),

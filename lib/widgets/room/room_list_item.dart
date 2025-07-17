@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:my_chat_app/models/room.dart';
 import 'package:intl/intl.dart'; // DateFormat 사용을 위한 임포트
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class RoomListItem extends StatelessWidget {
   final Room room;
@@ -26,42 +27,83 @@ class RoomListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(room.name),
-      subtitle: room.lastMessageContent != null
-          ? Text(
-              room.lastMessageContent!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            )
-          : null,
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (room.lastMessageCreatedAt != null)
-            Text(
-              _formatTimestamp(room.lastMessageCreatedAt),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          if (room.unreadCount > 0)
-            Container(
-              padding: const EdgeInsets.all(8.0),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary,
-                shape: BoxShape.circle,
+    return Card(
+      margin: const EdgeInsets.symmetric(
+          horizontal: UIConstants.paddingMedium, vertical: UIConstants.spacingSmall),
+      child: InkWell(
+        onTap: () {
+          context.push('/chat/${room.id}');
+        },
+        onLongPress: onLongPress,
+        borderRadius: BorderRadius.circular(UIConstants.borderRadiusCircular),
+        child: Padding(
+          padding: const EdgeInsets.all(UIConstants.paddingMedium),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      room.name,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (room.lastMessageContent != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: UIConstants.spacingSmall),
+                        child: Text(
+                          room.lastMessageContent!,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-              child: Text(
-                '${room.unreadCount}',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSecondary),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (room.lastMessageCreatedAt != null)
+                    Text(
+                      _formatTimestamp(room.lastMessageCreatedAt),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  if (room.unreadCount > 0)
+                    Padding(
+                      padding: const EdgeInsets.only(top: UIConstants.spacingSmall),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: UIConstants.paddingSmall,
+                            vertical: UIConstants.spacingSmall),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                          borderRadius: BorderRadius.circular(UIConstants.borderRadiusCircular),
+                        ),
+                        child: Text(
+                          '${room.unreadCount}',
+                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-            ),
-        ],
+            ],
+          ),
+        ),
       ),
-      onTap: () {
-        context.push('/chat/${room.id}');
-      },
-      onLongPress: onLongPress,
     );
   }
 }

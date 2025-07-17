@@ -26,7 +26,6 @@ class ProfileForm extends StatelessWidget {
               controller: nicknameController,
               decoration: const InputDecoration(
                 labelText: '닉네임',
-                border: OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -40,7 +39,6 @@ class ProfileForm extends StatelessWidget {
               controller: statusMessageController,
               decoration: const InputDecoration(
                 labelText: '상태 메시지',
-                border: OutlineInputBorder(),
               ),
               maxLines: 3,
             ),

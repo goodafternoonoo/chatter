@@ -10,8 +10,6 @@ class ToastUtils {
     String message,
     {
       Duration duration = const Duration(seconds: 2),
-      Color backgroundColor = Colors.black54,
-      Color textColor = Colors.white,
     }
   ) {
     if (_isShowing) {
@@ -22,8 +20,6 @@ class ToastUtils {
     _overlayEntry = OverlayEntry(
       builder: (context) => CustomToast(
         message: message,
-        backgroundColor: backgroundColor,
-        textColor: textColor,
       ),
     );
 

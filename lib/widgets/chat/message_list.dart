@@ -22,6 +22,7 @@ class MessageList extends StatelessWidget {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, child) {
         final profileProvider = context.watch<ProfileProvider>();
+        final colorScheme = Theme.of(context).colorScheme;
 
         if (chatProvider.error != null) {
           return Center(child: Text('오류: ${chatProvider.error}'));
@@ -78,10 +79,10 @@ class MessageList extends StatelessWidget {
             itemCount: messages.length + (chatProvider.isLoadingMore ? 1 : 0),
             itemBuilder: (context, index) {
               if (chatProvider.isLoadingMore && index == messages.length) {
-                return const Center(
+                return Center(
                   child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: CircularProgressIndicator(),
+                    padding: const EdgeInsets.all(8.0),
+                    child: CircularProgressIndicator(color: colorScheme.primary),
                   ),
                 );
               }

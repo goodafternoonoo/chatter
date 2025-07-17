@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   textAlign: TextAlign.center,
                 ),
               )
-            : const CircularProgressIndicator(),
+            : CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
       ),
     );
   }

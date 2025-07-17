@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class CustomToast extends StatelessWidget {
   final String message;
-  final Color backgroundColor;
-  final Color textColor;
 
   const CustomToast({
     super.key,
     required this.message,
-    this.backgroundColor = Colors.black54,
-    this.textColor = Colors.white,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Material(
       color: Colors.transparent,
       child: Align(
@@ -22,19 +21,19 @@ class CustomToast extends StatelessWidget {
           margin: const EdgeInsets.only(top: 50.0),
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
           decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(8.0),
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(UIConstants.borderRadiusCircular),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withAlpha((0.2 * 255).round()),
-                blurRadius: 6.0,
-                offset: const Offset(0, 3),
+                color: colorScheme.shadow.withAlpha(25),
+                blurRadius: UIConstants.cardElevation * 2,
+                offset: const Offset(0, UIConstants.cardElevation),
               ),
             ],
           ),
           child: Text(
             message,
-            style: TextStyle(color: textColor, fontSize: 16.0),
+            style: TextStyle(color: colorScheme.onSurface, fontSize: 16.0),
           ),
         ),
       ),
