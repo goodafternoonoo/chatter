@@ -6,6 +6,7 @@ class ProfileForm extends StatelessWidget {
   final TextEditingController nicknameController;
   final TextEditingController statusMessageController;
   final VoidCallback onSave;
+  final String buttonText;
 
   const ProfileForm({
     super.key,
@@ -13,6 +14,7 @@ class ProfileForm extends StatelessWidget {
     required this.nicknameController,
     required this.statusMessageController,
     required this.onSave,
+    this.buttonText = '프로필 저장',
   });
 
   @override
@@ -45,7 +47,7 @@ class ProfileForm extends StatelessWidget {
             const SizedBox(height: UIConstants.spacingMedium * 2),
             ElevatedButton(
               onPressed: onSave,
-              child: const Text('프로필 저장'),
+              child: Text(buttonText),
             ),
           ],
         ),

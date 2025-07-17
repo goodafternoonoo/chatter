@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider 임포트
 import 'package:my_chat_app/screens/splash_screen.dart';
-import 'package:my_chat_app/screens/nickname_screen.dart';
+
 import 'package:my_chat_app/screens/room_list_screen.dart';
 import 'package:my_chat_app/screens/chat_page.dart';
 import 'package:my_chat_app/screens/profile_screen.dart'; // ProfileScreen 임포트
@@ -17,12 +17,7 @@ final GoRouter appRouter = GoRouter(
         return const SplashScreen();
       },
     ),
-    GoRoute(
-      path: '/nickname',
-      builder: (BuildContext context, GoRouterState state) {
-        return const NicknameScreen();
-      },
-    ),
+    
     GoRoute(
       path: '/rooms',
       builder: (BuildContext context, GoRouterState state) {

@@ -44,7 +44,7 @@ class _SplashScreenState extends State<SplashScreen> {
         }
 
         if (profileProvider.currentNickname == AppConstants.defaultNickname) {
-          context.go('/nickname');
+          context.go('/profile');
         } else {
           context.go('/rooms');
         }

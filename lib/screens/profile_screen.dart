@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/profile_provider.dart';
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
-import 'package:my_chat_app/utils/toast_utils.dart';
+import 'package:my_chat_app/constants/app_constants.dart';
+
 import 'package:my_chat_app/widgets/profile/profile_avatar.dart';
 import 'package:my_chat_app/widgets/profile/profile_form.dart';
 import 'package:my_chat_app/widgets/common_app_bar.dart';
@@ -23,6 +24,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late ProfileProvider _profileProvider;
+  late bool _isInitialSetup;
 
   @override
   void initState() {
@@ -30,6 +32,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _profileProvider = context.read<ProfileProvider>();
     _profileProvider.addListener(_updateControllers);
     _updateControllers();
+    _isInitialSetup = _profileProvider.currentNickname == AppConstants.defaultNickname;
   }
 
   @override
@@ -67,8 +70,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           statusMessage: _statusMessageController.text.trim(),
         );
         if (!mounted) return;
-        ToastUtils.showToast(context, '프로필이 성공적으로 업데이트되었습니다.');
-        context.pop();
+        if (_isInitialSetup) {
+          context.go('/rooms');
+        } else {
+          context.pop();
+        }
       } catch (e, s) {
         if (mounted) showErrorSnackBar(context, e, s);
       }
@@ -80,8 +86,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
-      appBar: const CommonAppBar(
-        title: Text('프로필 관리'),
+      appBar: CommonAppBar(
+        title: Text(_isInitialSetup ? '닉네임 설정' : '프로필 관리'),
+        automaticallyImplyLeading: !_isInitialSetup,
       ),
       body: profileProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -101,6 +108,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         nicknameController: _nicknameController,
                         statusMessageController: _statusMessageController,
                         onSave: _saveProfile,
+                        buttonText: _isInitialSetup ? '채팅 시작하기' : '프로필 저장',
                       ),
                     ],
                   ),
