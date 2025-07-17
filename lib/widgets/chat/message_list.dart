@@ -89,10 +89,6 @@ class MessageList extends StatelessWidget {
               final message = messages[index];
               final isMe = message.localUserId == profileProvider.currentLocalUserId;
 
-              if (!isMe && !message.readBy.contains(profileProvider.currentLocalUserId)) {
-                chatProvider.markMessageAsRead(message.id);
-              }
-
               return FutureBuilder<Profile?>(
                 future: profileProvider.getProfileById(message.localUserId),
                 builder: (context, profileSnapshot) {

@@ -21,7 +21,7 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage> {
+class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage>, WidgetsBindingObserver {
   final _messageController = TextEditingController();
   final _focusNode = FocusNode();
   final _searchController = TextEditingController();
@@ -34,6 +34,7 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _messageController.addListener(_onMessageChanged);
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
@@ -48,11 +49,13 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
     scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
+      _markMessagesAsRead();
     });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _messageController.removeListener(_onMessageChanged);
     _messageController.dispose();
     _focusNode.dispose();
@@ -60,6 +63,18 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
     _searchFocusNode.dispose();
     scrollController.removeListener(_onScroll);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _markMessagesAsRead();
+    }
+  }
+
+  void _markMessagesAsRead() {
+    final chatProvider = context.read<ChatProvider>();
+    chatProvider.markAllMessagesAsRead();
   }
 
   void _onScroll() {

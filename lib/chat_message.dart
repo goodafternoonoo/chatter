@@ -101,7 +101,7 @@ class ChatMessage extends StatelessWidget {
               child: Text(
                 message.readBy.any((id) => id != myLocalUserId)
                     ? '읽음'
-                    : '1', // 읽음/안읽음 표시
+                    : '읽지 않음', // 읽음/안읽음 표시
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
                   color: Theme.of(context).colorScheme.primary, // 눈에 띄는 색상으로 변경
                   fontWeight: FontWeight.bold,

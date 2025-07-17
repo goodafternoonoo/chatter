@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer'; // dart:developer 임포트
 import 'package:flutter/material.dart';
 import 'package:my_chat_app/models/room.dart';
 import 'package:my_chat_app/repositories/room_repository.dart';
@@ -10,7 +11,7 @@ class RoomProvider with ChangeNotifier {
   final ProfileProvider _profileProvider;
   final ChatRepository _chatRepository;
   StreamSubscription<List<Room>>? _roomSubscription;
-  Map<String, StreamSubscription<List<dynamic>>> _messageSubscriptions = {}; // 각 방의 메시지 스트림 구독 관리
+  final Map<String, StreamSubscription<List<dynamic>>> _messageSubscriptions = {}; // 각 방의 메시지 스트림 구독 관리
   List<Room> _rooms = [];
   bool _isLoading = true;
   String? _error;
@@ -44,10 +45,16 @@ class RoomProvider with ChangeNotifier {
         _subscribeToRoomMessages(room.id);
       }
       // 더 이상 존재하지 않는 방의 구독 해지
-      _messageSubscriptions.keys.where((roomId) => !rooms.any((room) => room.id == roomId)).forEach((roomId) {
+      final List<String> roomsToRemove = [];
+      for (var roomId in _messageSubscriptions.keys) {
+        if (!rooms.any((room) => room.id == roomId)) {
+          roomsToRemove.add(roomId);
+        }
+      }
+      for (var roomId in roomsToRemove) {
         _messageSubscriptions[roomId]?.cancel();
         _messageSubscriptions.remove(roomId);
-      });
+      }
 
       // 초기 읽지 않은 메시지 수 계산
       await _updateAllRoomUnreadCounts();
@@ -69,7 +76,7 @@ class RoomProvider with ChangeNotifier {
       await _updateRoomUnreadCount(roomId);
     }, onError: (e) {
       // 메시지 스트림 에러 처리
-      print('Error listening to messages for room $roomId: $e');
+      log('Error listening to messages for room $roomId', name: 'RoomProvider', error: e);
     });
   }
 
@@ -139,7 +146,9 @@ class RoomProvider with ChangeNotifier {
   @override
   void dispose() {
     _roomSubscription?.cancel();
-    _messageSubscriptions.values.forEach((subscription) => subscription.cancel());
+    for (var subscription in _messageSubscriptions.values) {
+      subscription.cancel();
+    }
     _messageSubscriptions.clear();
     super.dispose();
   }

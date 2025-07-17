@@ -78,23 +78,37 @@ class ChatProvider with ChangeNotifier {
       newMessages,
     ) {
       if (newMessages.isNotEmpty) {
-        final existingIds = _messages.map((m) => m.id).toSet();
         final latestMessageInList = _messages.isNotEmpty
             ? _messages.first.createdAt
             : DateTime.fromMillisecondsSinceEpoch(0);
 
-        // 스트림에서 기존에 없는 메시지이면서, 현재 리스트의 최신 메시지보다 새로운 메시지만 필터링
-        final trulyNewMessages = newMessages
-            .where(
-              (m) =>
-                  !existingIds.contains(m.id) &&
-                  m.createdAt.isAfter(latestMessageInList) &&
-                  !m.isDeleted, // isDeleted 필터 추가
-            )
-            .toList();
+        final List<Message> messagesToUpdate = [];
+        final List<Message> trulyNewMessages = [];
 
-        if (trulyNewMessages.isNotEmpty) {
+        for (var newMessage in newMessages) {
+          final existingMessageIndex = _messages.indexWhere((m) => m.id == newMessage.id);
+          if (existingMessageIndex != -1) {
+            // 기존 메시지인 경우, readBy 필드 업데이트 여부 확인
+            if (_messages[existingMessageIndex].readBy.length != newMessage.readBy.length) {
+              messagesToUpdate.add(newMessage);
+            }
+          } else if (newMessage.createdAt.isAfter(latestMessageInList) && !newMessage.isDeleted) {
+            // 새로운 메시지인 경우
+            trulyNewMessages.add(newMessage);
+          }
+        }
+
+        if (trulyNewMessages.isNotEmpty || messagesToUpdate.isNotEmpty) {
+          // 새로운 메시지 추가
           _messages = _sortAndDeduplicateMessages(_messages + trulyNewMessages);
+
+          // 기존 메시지 업데이트
+          for (var updatedMsg in messagesToUpdate) {
+            final index = _messages.indexWhere((msg) => msg.id == updatedMsg.id);
+            if (index != -1) {
+              _messages[index] = updatedMsg;
+            }
+          }
 
           final latestMessage = _messages.first;
           if (latestMessage.localUserId != _profileProvider.currentLocalUserId &&
@@ -199,6 +213,47 @@ class ChatProvider with ChangeNotifier {
       await _chatRepository.markMessageAsRead(messageId, _profileProvider.currentLocalUserId!);
     } catch (e) {
       _error = '메시지 읽음 처리 실패: $e';
+      if (kDebugMode) {
+        print(e);
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> markAllMessagesAsRead() async {
+    if (_profileProvider.currentLocalUserId == null) return;
+
+    final currentUserId = _profileProvider.currentLocalUserId!;
+    final List<Message> messagesToUpdate = [];
+
+    for (var message in _messages) {
+      if (message.localUserId != currentUserId && !message.readBy.contains(currentUserId)) {
+        messagesToUpdate.add(message);
+      }
+    }
+
+    if (messagesToUpdate.isEmpty) return;
+
+    try {
+      for (var message in messagesToUpdate) {
+        await _chatRepository.markMessageAsRead(message.id, currentUserId);
+        // 로컬 메시지 객체의 readBy 리스트 업데이트
+        final index = _messages.indexWhere((msg) => msg.id == message.id);
+        if (index != -1) {
+          _messages[index] = Message(
+            id: _messages[index].id,
+            content: _messages[index].content,
+            localUserId: _messages[index].localUserId,
+            createdAt: _messages[index].createdAt,
+            readBy: List<String>.from(_messages[index].readBy)..add(currentUserId),
+            imageUrl: _messages[index].imageUrl,
+            isDeleted: _messages[index].isDeleted,
+          );
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      _error = '모든 메시지 읽음 처리 실패: $e';
       if (kDebugMode) {
         print(e);
       }
