@@ -28,9 +28,12 @@ class _ChatPageState extends State<ChatPage>
     with ScrollControllerMixin<ChatPage> {
   final _messageController = TextEditingController();
   final _focusNode = FocusNode(); // FocusNode 추가
+  final _searchController = TextEditingController(); // 검색 컨트롤러 추가
+  final _searchFocusNode = FocusNode(); // 검색 포커스 노드 추가
 
   bool _isMessageEmpty = true;
   bool _showEmojiPicker = false; // 이모티콘 선택기 표시 여부
+  bool _showSearchField = false; // 검색 필드 표시 여부
 
   @override
   void initState() {
@@ -43,6 +46,9 @@ class _ChatPageState extends State<ChatPage>
         });
       }
     });
+    _searchController.addListener(() {
+      // 검색어 변경 시 로직 추가 (예: 검색 실행)
+    });
     // 스크롤 리스너 추가
     scrollController.addListener(_onScroll);
   }
@@ -52,6 +58,8 @@ class _ChatPageState extends State<ChatPage>
     _messageController.removeListener(_onMessageChanged);
     _messageController.dispose();
     _focusNode.dispose(); // FocusNode 해제
+    _searchController.dispose(); // 검색 컨트롤러 해제
+    _searchFocusNode.dispose(); // 검색 포커스 노드 해제
     // 스크롤 리스너 제거
     scrollController.removeListener(_onScroll);
     super.dispose();
@@ -124,6 +132,22 @@ class _ChatPageState extends State<ChatPage>
         actions: [
           IconButton(
             icon: Icon(
+              _showSearchField ? Icons.close : Icons.search, // 검색 필드 토글 아이콘
+            ),
+            onPressed: () {
+              setState(() {
+                _showSearchField = !_showSearchField;
+                if (!_showSearchField) {
+                  _searchController.clear(); // 검색 필드 닫을 때 검색어 초기화
+                } else {
+                  _searchFocusNode.requestFocus(); // 검색 필드 열 때 포커스
+                }
+              });
+            },
+            tooltip: '메시지 검색',
+          ),
+          IconButton(
+            icon: Icon(
               themeModeProvider.themeMode == ThemeMode.dark
                   ? Icons.light_mode
                   : Icons.dark_mode,
@@ -137,6 +161,42 @@ class _ChatPageState extends State<ChatPage>
         children: [
           Column(
             children: [
+              if (_showSearchField) // 검색 필드 표시
+                Padding(
+                  padding: const EdgeInsets.all(UIConstants.spacingMedium),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          decoration: InputDecoration(
+                            hintText: '검색어를 입력하세요',
+                            border: const OutlineInputBorder(), // 테두리 추가
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
+                            ),
+                          ),
+                          onSubmitted: (value) {
+                            final chatProvider = context.read<ChatProvider>();
+                            chatProvider.searchMessages(value);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: UIConstants.spacingSmall),
+                      IconButton(
+                        icon: const Icon(Icons.search),
+                        onPressed: () {
+                          final chatProvider = context.read<ChatProvider>();
+                          chatProvider.searchMessages(_searchController.text);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               Expanded(
                 child: Consumer<ChatProvider>(
                   builder: (context, chatProvider, child) {
@@ -152,61 +212,115 @@ class _ChatPageState extends State<ChatPage>
                       return const Center(child: CircularProgressIndicator());
                     }
                     final messages = chatProvider.messages;
+                    final searchResults =
+                        chatProvider.searchResults; // 검색 결과 가져오기
 
-                    return ListView.builder(
-                      key: const ValueKey('chatListView'),
-                      controller: scrollController,
-                      reverse: true,
-                      itemCount:
-                          messages.length +
-                          (chatProvider.isLoadingMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (chatProvider.isLoadingMore &&
-                            index == messages.length) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(),
+                    // 검색 필드가 활성화되어 있고 검색 결과가 있을 경우 검색 결과 표시
+                    if (_showSearchField && searchResults.isNotEmpty) {
+                      return ListView.builder(
+                        key: const ValueKey('searchListView'),
+                        controller: scrollController, // 검색 결과도 스크롤 가능하도록
+                        itemCount: searchResults.length,
+                        itemBuilder: (context, index) {
+                          final message = searchResults[index];
+                          final isMe =
+                              message.localUserId ==
+                              profileProvider.currentLocalUserId;
+
+                          return FutureBuilder<Profile?>(
+                            future: profileProvider.getProfileById(
+                              message.localUserId,
                             ),
+                            builder: (context, profileSnapshot) {
+                              final Profile? senderProfile =
+                                  profileSnapshot.data;
+                              return ChatMessage(
+                                message: message,
+                                isMe: isMe,
+                                myLocalUserId:
+                                    profileProvider.currentLocalUserId!,
+                                senderNickname:
+                                    senderProfile?.nickname ?? '알 수 없음',
+                                avatarUrl: isMe
+                                    ? profileProvider.currentProfile?.avatarUrl
+                                    : senderProfile?.avatarUrl,
+                                isOnline: senderProfile?.isOnline ?? false,
+                                lastSeen: senderProfile?.lastSeen,
+                                onDelete: isMe && !message.isDeleted
+                                    ? () =>
+                                          chatProvider.deleteMessage(message.id)
+                                    : null,
+                              );
+                            },
                           );
-                        }
-
-                        final message = messages[index];
-                        final isMe =
-                            message.localUserId == profileProvider.currentLocalUserId;
-
-                        if (!isMe &&
-                            !message.readBy.contains(
-                              profileProvider.currentLocalUserId,
-                            )) {
-                          chatProvider.markMessageAsRead(message.id);
-                        }
-
-                        return FutureBuilder<Profile?>(
-                          future: profileProvider.getProfileById(
-                            message.localUserId,
-                          ),
-                          builder: (context, profileSnapshot) {
-                            final Profile? senderProfile = profileSnapshot.data;
-                            return ChatMessage(
-                              message: message,
-                              isMe: isMe,
-                              myLocalUserId: profileProvider.currentLocalUserId!,
-                              senderNickname:
-                                  senderProfile?.nickname ?? '알 수 없음',
-                              avatarUrl: isMe
-                                  ? profileProvider.currentProfile?.avatarUrl
-                                  : senderProfile?.avatarUrl,
-                              isOnline: senderProfile?.isOnline ?? false, // isOnline 추가
-                              lastSeen: senderProfile?.lastSeen, // lastSeen 추가
-                              onDelete: isMe && !message.isDeleted
-                                  ? () => chatProvider.deleteMessage(message.id)
-                                  : null,
+                        },
+                      );
+                    } else if (_showSearchField &&
+                        searchResults.isEmpty &&
+                        _searchController.text.isNotEmpty) {
+                      // 검색 필드가 활성화되어 있고 검색 결과가 없으며 검색어가 입력된 경우
+                      return const Center(child: Text('검색 결과가 없습니다.'));
+                    } else {
+                      // 일반 메시지 목록 표시
+                      return ListView.builder(
+                        key: const ValueKey('chatListView'),
+                        controller: scrollController,
+                        reverse: true,
+                        itemCount:
+                            messages.length +
+                            (chatProvider.isLoadingMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (chatProvider.isLoadingMore &&
+                              index == messages.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(),
+                              ),
                             );
-                          },
-                        );
-                      },
-                    );
+                          }
+
+                          final message = messages[index];
+                          final isMe =
+                              message.localUserId ==
+                              profileProvider.currentLocalUserId;
+
+                          if (!isMe &&
+                              !message.readBy.contains(
+                                profileProvider.currentLocalUserId,
+                              )) {
+                            chatProvider.markMessageAsRead(message.id);
+                          }
+
+                          return FutureBuilder<Profile?>(
+                            future: profileProvider.getProfileById(
+                              message.localUserId,
+                            ),
+                            builder: (context, profileSnapshot) {
+                              final Profile? senderProfile =
+                                  profileSnapshot.data;
+                              return ChatMessage(
+                                message: message,
+                                isMe: isMe,
+                                myLocalUserId:
+                                    profileProvider.currentLocalUserId!,
+                                senderNickname:
+                                    senderProfile?.nickname ?? '알 수 없음',
+                                avatarUrl: isMe
+                                    ? profileProvider.currentProfile?.avatarUrl
+                                    : senderProfile?.avatarUrl,
+                                isOnline: senderProfile?.isOnline ?? false,
+                                lastSeen: senderProfile?.lastSeen,
+                                onDelete: isMe && !message.isDeleted
+                                    ? () =>
+                                          chatProvider.deleteMessage(message.id)
+                                    : null,
+                              );
+                            },
+                          );
+                        },
+                      );
+                    }
                   },
                 ),
               ),

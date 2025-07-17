@@ -19,6 +19,9 @@ class ChatProvider with ChangeNotifier {
   String? _error;
   bool _isLoadingMore = false;
   bool _hasMoreMessages = true;
+  String _searchQuery = ''; // 검색어 필드 추가
+  List<Message> _searchResults = []; // 검색 결과 필드 추가
+  bool _isSearching = false; // 검색 중 상태 필드 추가
 
   // UI (ListView reverse:true)에 맞게 데이터는 최신순 -> 오래된순 으로 관리
   List<Message> get messages => _messages;
@@ -26,6 +29,9 @@ class ChatProvider with ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   bool get hasMoreMessages => _hasMoreMessages;
   String? get error => _error;
+  String get searchQuery => _searchQuery; // 검색어 getter 추가
+  List<Message> get searchResults => _searchResults; // 검색 결과 getter 추가
+  bool get isSearching => _isSearching; // 검색 중 상태 getter 추가
 
   ChatProvider({required this.roomId, ChatRepository? chatRepository, required ProfileProvider profileProvider})
     : _chatRepository =
@@ -223,6 +229,30 @@ class ChatProvider with ChangeNotifier {
         print(e);
       }
       rethrow;
+    }
+  }
+
+  Future<void> searchMessages(String query) async {
+    _searchQuery = query.trim();
+    if (_searchQuery.isEmpty) {
+      _searchResults = [];
+      notifyListeners();
+      return;
+    }
+
+    _isSearching = true;
+    notifyListeners();
+
+    try {
+      _searchResults = await _chatRepository.searchMessages(roomId: roomId, query: _searchQuery);
+    } catch (e) {
+      _error = '메시지 검색에 실패했습니다: $e';
+      if (kDebugMode) {
+        print(e);
+      }
+    } finally {
+      _isSearching = false;
+      notifyListeners();
     }
   }
 }

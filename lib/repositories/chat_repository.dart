@@ -118,4 +118,17 @@ class ChatRepository {
         .update({'read_by': newReadBy})
         .eq('id', messageId);
   }
+
+  // 메시지 검색
+  Future<List<Message>> searchMessages({required String roomId, required String query}) async {
+    final response = await _supabase
+        .from(AppConstants.messagesTableName)
+        .select()
+        .eq('room_id', roomId)
+        .eq('is_deleted', false) // 삭제되지 않은 메시지만 검색
+        .ilike('content', '%$query%') // content 필드에서 검색어 포함 여부 확인 (대소문자 구분 안 함)
+        .order('created_at', ascending: false);
+
+    return response.map((item) => Message.fromJson(item)).toList();
+  }
 }
