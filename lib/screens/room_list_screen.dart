@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:go_router/go_router.dart'; // go_router 임포트
+import 'package:go_router/go_router.dart';
 import 'package:my_chat_app/models/room.dart';
-import 'package:my_chat_app/utils/toast_utils.dart'; // ToastUtils 임포트
+import 'package:my_chat_app/utils/toast_utils.dart';
+import 'package:my_chat_app/widgets/room/room_list_item.dart';
+import 'package:my_chat_app/widgets/room/create_room_bottom_sheet.dart';
 
 class RoomListScreen extends StatefulWidget {
   const RoomListScreen({super.key});
@@ -12,7 +14,10 @@ class RoomListScreen extends StatefulWidget {
 }
 
 class _RoomListScreenState extends State<RoomListScreen> {
-  final _roomStream = Supabase.instance.client.from('rooms').stream(primaryKey: ['id']).map((maps) => maps.map((map) => Room.fromMap(map)).toList());
+  final _roomStream = Supabase.instance.client
+      .from('rooms')
+      .stream(primaryKey: ['id']).map(
+          (maps) => maps.map((map) => Room.fromMap(map)).toList());
   final _newRoomController = TextEditingController();
 
   Future<void> _createRoom() async {
@@ -44,35 +49,28 @@ class _RoomListScreenState extends State<RoomListScreen> {
       context: context,
       isScrollControlled: true,
       builder: (BuildContext bc) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(bc).viewInsets.bottom,
-            left: 16.0,
-            right: 16.0,
-            top: 16.0,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+        return CreateRoomBottomSheet(
+          controller: _newRoomController,
+          onCreate: _createRoom,
+        );
+      },
+    );
+  }
+
+  void _showDeleteRoomBottomSheet(String roomId) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext bc) {
+        return SafeArea(
+          child: Wrap(
             children: <Widget>[
-              TextField(
-                controller: _newRoomController,
-                decoration: const InputDecoration(
-                  hintText: '새 채팅방 이름',
-                  border: OutlineInputBorder(),
-                ),
-                autofocus: true,
-                onSubmitted: (value) {
-                  _createRoom();
-                  context.pop(); // 모달 닫기
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('채팅방 삭제'),
+                onTap: () {
+                  context.pop();
+                  _deleteRoom(roomId);
                 },
-              ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () {
-                  _createRoom();
-                  context.pop(); // 모달 닫기
-                },
-                child: const Text('채팅방 생성'),
               ),
             ],
           ),
@@ -96,56 +94,27 @@ class _RoomListScreenState extends State<RoomListScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<List<Room>>(
-              stream: _roomStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('오류가 발생했습니다: ${snapshot.error}'));
-                }
-                final rooms = snapshot.data!;
-                return ListView.builder(
-                  itemCount: rooms.length,
-                  itemBuilder: (context, index) {
-                    final room = rooms[index];
-                    return ListTile(
-                      title: Text(room.name),
-                      onTap: () {
-                        context.push('/chat/${room.id}');
-                      },
-                      onLongPress: () {
-                        showModalBottomSheet(
-                          context: context,
-                          builder: (BuildContext bc) {
-                            return SafeArea(
-                              child: Wrap(
-                                children: <Widget>[
-                                  ListTile(
-                                    leading: const Icon(Icons.delete),
-                                    title: const Text('채팅방 삭제'),
-                                    onTap: () {
-                                      context.pop(); // 모달 닫기
-                                      _deleteRoom(room.id);
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
+      body: StreamBuilder<List<Room>>(
+        stream: _roomStream,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('오류가 발생했습니다: ${snapshot.error}'));
+          }
+          final rooms = snapshot.data!;
+          return ListView.builder(
+            itemCount: rooms.length,
+            itemBuilder: (context, index) {
+              final room = rooms[index];
+              return RoomListItem(
+                room: room,
+                onLongPress: () => _showDeleteRoomBottomSheet(room.id),
+              );
+            },
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateRoomBottomSheet,
