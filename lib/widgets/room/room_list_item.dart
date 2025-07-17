@@ -12,6 +12,19 @@ class RoomListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(room.name),
+      trailing: room.unreadCount > 0
+          ? Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondary,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '${room.unreadCount}',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSecondary),
+              ),
+            )
+          : null,
       onTap: () {
         context.push('/chat/${room.id}');
       },
