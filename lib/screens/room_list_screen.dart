@@ -5,6 +5,7 @@ import 'package:my_chat_app/providers/room_provider.dart';
 import 'package:my_chat_app/utils/toast_utils.dart';
 import 'package:my_chat_app/widgets/room/room_list_item.dart';
 import 'package:my_chat_app/widgets/room/create_room_bottom_sheet.dart';
+import 'package:my_chat_app/widgets/common_app_bar.dart';
 
 class RoomListScreen extends StatefulWidget {
   const RoomListScreen({super.key});
@@ -78,7 +79,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: CommonAppBar(
         title: const Text('채팅방 목록'),
         actions: [
           IconButton(

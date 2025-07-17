@@ -4,6 +4,7 @@ import 'package:my_chat_app/providers/profile_provider.dart'; // ProfileProvider
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
 import 'package:go_router/go_router.dart';
+import 'package:my_chat_app/widgets/common_app_bar.dart';
 
 class NicknameScreen extends StatefulWidget {
   const NicknameScreen({super.key});
@@ -45,7 +46,7 @@ class _NicknameScreenState extends State<NicknameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('닉네임 설정')),
+      appBar: const CommonAppBar(title: Text('닉네임 설정')),
       body: Padding(
         padding: const EdgeInsets.all(UIConstants.paddingMedium),
         child: Form(

@@ -8,6 +8,7 @@ import 'package:my_chat_app/constants/ui_constants.dart';
 import 'package:my_chat_app/utils/toast_utils.dart';
 import 'package:my_chat_app/widgets/profile/profile_avatar.dart';
 import 'package:my_chat_app/widgets/profile/profile_form.dart';
+import 'package:my_chat_app/widgets/common_app_bar.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -79,8 +80,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('프로필 관리'),
+      appBar: const CommonAppBar(
+        title: Text('프로필 관리'),
       ),
       body: profileProvider.isLoading
           ? const Center(child: CircularProgressIndicator())

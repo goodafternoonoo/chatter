@@ -6,11 +6,11 @@ import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/utils/error_utils.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
 import 'package:my_chat_app/mixins/scroll_controller_mixin.dart';
-import 'package:my_chat_app/widgets/chat/chat_app_bar.dart';
+import 'package:my_chat_app/widgets/common_app_bar.dart';
 import 'package:my_chat_app/widgets/chat/search_field.dart';
 import 'package:my_chat_app/widgets/chat/message_list.dart';
 import 'package:my_chat_app/widgets/chat/message_input.dart';
-import 'package:my_chat_app/models/theme_mode_provider.dart';
+
 
 class ChatPage extends StatefulWidget {
   final String roomId;
@@ -153,8 +153,6 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
 
   @override
   Widget build(BuildContext context) {
-    final themeModeProvider = context.watch<ThemeModeProvider>();
-
     return Focus(
       autofocus: true,
       onKeyEvent: (node, event) {
@@ -175,10 +173,17 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
         return KeyEventResult.ignored;
       },
       child: Scaffold(
-        appBar: ChatAppBar(
-          showSearchField: _showSearchField,
-          onToggleSearch: _toggleSearch,
-          onToggleTheme: themeModeProvider.toggleTheme,
+        appBar: CommonAppBar(
+          title: const Text('실시간 채팅'),
+          actions: [
+            IconButton(
+              icon: Icon(
+                _showSearchField ? Icons.close : Icons.search,
+              ),
+              onPressed: _toggleSearch,
+              tooltip: '메시지 검색',
+            ),
+          ],
         ),
         body: Stack(
           children: [
