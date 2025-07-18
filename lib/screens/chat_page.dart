@@ -235,13 +235,6 @@ class _ChatPageState extends State<ChatPage>
               ),
           ],
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: showScrollToBottomButton
-            ? FloatingActionButton(
-                onPressed: scrollToBottom,
-                child: const Icon(Icons.arrow_downward),
-              )
-            : null,
       ),
     );
   }
