@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart'
-    as emoji_picker_flutter;
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -157,30 +156,39 @@ class _MessageInputState extends State<MessageInput> {
           offstage: !widget.showEmojiPicker,
           child: SizedBox(
             height: 250,
-            child: emoji_picker_flutter.EmojiPicker(
+            child: EmojiPicker(
               textEditingController: widget.messageController,
               onEmojiSelected: (category, emoji) {},
-              config: emoji_picker_flutter.Config(
+              config: Config(
                 height: 250,
                 checkPlatformCompatibility: true,
-                emojiViewConfig: emoji_picker_flutter.EmojiViewConfig(
+                locale: const Locale('ko'),
+                viewOrderConfig: ViewOrderConfig(),
+                emojiViewConfig: EmojiViewConfig(
                   emojiSizeMax:
                       28 *
                       (foundation.defaultTargetPlatform == TargetPlatform.iOS
                           ? 1.20
                           : 1.0),
+                  backgroundColor: colorScheme.surfaceContainerHigh,
                 ),
-                skinToneConfig: const emoji_picker_flutter.SkinToneConfig(),
-                categoryViewConfig: emoji_picker_flutter.CategoryViewConfig(
-                  initCategory: emoji_picker_flutter.Category.RECENT,
+                skinToneConfig: const SkinToneConfig(),
+                categoryViewConfig: CategoryViewConfig(
+                  backgroundColor: colorScheme.surfaceContainerHigh,
+                  initCategory: Category.RECENT,
                   indicatorColor: colorScheme.primary,
                   iconColor: colorScheme.onSurfaceVariant,
                   iconColorSelected: colorScheme.primary,
                   backspaceColor: colorScheme.primary,
                 ),
-                bottomActionBarConfig:
-                    const emoji_picker_flutter.BottomActionBarConfig(),
-                searchViewConfig: const emoji_picker_flutter.SearchViewConfig(),
+                bottomActionBarConfig: BottomActionBarConfig(
+                  backgroundColor: colorScheme.surfaceContainerHigh,
+                  buttonColor: colorScheme.primary,
+                ),
+                searchViewConfig: SearchViewConfig(
+                  backgroundColor: colorScheme.surfaceContainerHigh,
+                  buttonIconColor: colorScheme.primary,
+                ),
               ),
             ),
           ),
