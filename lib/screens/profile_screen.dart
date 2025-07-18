@@ -90,32 +90,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
-      appBar: CommonAppBar(
-        title: Text(_isInitialSetup ? '닉네임 설정' : '프로필 관리'),
-        automaticallyImplyLeading: !_isInitialSetup,
-      ),
+      appBar: null, // 기본 AppBar 제거
       body: profileProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : profileProvider.error != null
               ? Center(child: Text('오류: ${profileProvider.error}'))
-              : Padding(
-                  padding: const EdgeInsets.all(UIConstants.paddingMedium),
-                  child: Column(
-                    children: [
-                      ProfileAvatar(
-                        avatarUrl: profileProvider.currentProfile?.avatarUrl,
-                        onTap: _pickImage,
+              : Column(
+                  children: [
+                    CommonAppBar(
+                      title: Text(_isInitialSetup ? '닉네임 설정' : '프로필 관리'),
+                      automaticallyImplyLeading: !_isInitialSetup,
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(UIConstants.paddingMedium),
+                        child: Column(
+                          children: [
+                            ProfileAvatar(
+                              avatarUrl: profileProvider.currentProfile?.avatarUrl,
+                              onTap: _pickImage,
+                            ),
+                            const SizedBox(height: UIConstants.spacingMedium),
+                            ProfileForm(
+                              formKey: _formKey,
+                              nicknameController: _nicknameController,
+                              statusMessageController: _statusMessageController,
+                              onSave: _saveProfile,
+                              buttonText: _isInitialSetup ? '채팅 시작하기' : '프로필 저장',
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: UIConstants.spacingMedium),
-                      ProfileForm(
-                        formKey: _formKey,
-                        nicknameController: _nicknameController,
-                        statusMessageController: _statusMessageController,
-                        onSave: _saveProfile,
-                        buttonText: _isInitialSetup ? '채팅 시작하기' : '프로필 저장',
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
     );
   }

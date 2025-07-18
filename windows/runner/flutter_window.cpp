@@ -9,6 +9,17 @@ FlutterWindow::FlutterWindow(const flutter::DartProject& project)
 
 FlutterWindow::~FlutterWindow() {}
 
+void FlutterWindow::SetFrameless(bool frameless) {
+  LONG_PTR current_style = GetWindowLongPtr(GetHandle(), GWL_STYLE);
+  if (frameless) {
+    current_style |= WS_POPUP;
+  } else {
+    current_style &= ~WS_POPUP;
+  }
+  SetWindowLongPtr(GetHandle(), GWL_STYLE, current_style);
+  SetWindowPos(GetHandle(), nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+}
+
 bool FlutterWindow::OnCreate() {
   if (!Win32Window::OnCreate()) {
     return false;

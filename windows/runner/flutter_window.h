@@ -15,6 +15,9 @@ class FlutterWindow : public Win32Window {
   explicit FlutterWindow(const flutter::DartProject& project);
   virtual ~FlutterWindow();
 
+  // Sets whether the window should have a frame.
+  void SetFrameless(bool frameless);
+
  protected:
   // Win32Window:
   bool OnCreate() override;

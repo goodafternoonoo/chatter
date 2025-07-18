@@ -4,7 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
 import 'package:my_chat_app/utils/error_utils.dart';
-import 'package:my_chat_app/constants/ui_constants.dart';
+// import 'package:my_chat_app/constants/ui_constants.dart'; // Unused import removed
 import 'package:my_chat_app/mixins/scroll_controller_mixin.dart';
 import 'package:my_chat_app/widgets/common_app_bar.dart';
 import 'package:my_chat_app/widgets/chat/search_field.dart';
@@ -173,22 +173,23 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
         return KeyEventResult.ignored;
       },
       child: Scaffold(
-        appBar: CommonAppBar(
-          title: const Text('실시간 채팅'),
-          actions: [
-            IconButton(
-              icon: Icon(
-                _showSearchField ? Icons.close : Icons.search,
-              ),
-              onPressed: _toggleSearch,
-              tooltip: '메시지 검색',
-            ),
-          ],
-        ),
+        appBar: null, // 기본 AppBar 제거
         body: Stack(
           children: [
             Column(
               children: [
+                CommonAppBar( // 사용자 정의 AppBar를 body의 첫 번째 위젯으로 추가
+                  title: const Text('실시간 채팅'),
+                  actions: [
+                    IconButton(
+                      icon: Icon(
+                        _showSearchField ? Icons.close : Icons.search,
+                      ),
+                      onPressed: _toggleSearch,
+                      tooltip: '메시지 검색',
+                    ),
+                  ],
+                ),
                 if (_showSearchField)
                   SearchField(
                     searchController: _searchController,
@@ -214,7 +215,7 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
             ),
             if (showScrollToBottomButton)
               Positioned(
-                bottom: kToolbarHeight + UIConstants.spacingMedium,
+                bottom: kToolbarHeight + 16.0, // UIConstants.spacingMedium 대신 직접 값 사용
                 left: 0.0,
                 right: 0.0,
                 child: Center(
@@ -227,7 +228,12 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
           ],
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: null,
+        floatingActionButton: showScrollToBottomButton
+            ? FloatingActionButton(
+                onPressed: scrollToBottom,
+                child: const Icon(Icons.arrow_downward),
+              )
+            : null,
       ),
     );
   }

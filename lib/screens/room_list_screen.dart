@@ -79,38 +79,45 @@ class _RoomListScreenState extends State<RoomListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonAppBar(
-        title: const Text('채팅방 목록'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle),
-            tooltip: '프로필 관리',
-            onPressed: () {
-              context.push('/profile');
-            },
+      appBar: null, // 기본 AppBar 제거
+      body: Column(
+        children: [
+          CommonAppBar(
+            title: const Text('채팅방 목록'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.account_circle),
+                tooltip: '프로필 관리',
+                onPressed: () {
+                  context.push('/profile');
+                },
+              ),
+            ],
+          ),
+          Expanded(
+            child: Consumer<RoomProvider>(
+              builder: (context, roomProvider, child) {
+                if (roomProvider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (roomProvider.error != null) {
+                  return Center(child: Text('오류가 발생했습니다: ${roomProvider.error}'));
+                }
+                final rooms = roomProvider.rooms;
+                return ListView.builder(
+                  itemCount: rooms.length,
+                  itemBuilder: (context, index) {
+                    final room = rooms[index];
+                    return RoomListItem(
+                      room: room,
+                      onLongPress: () => _showDeleteRoomBottomSheet(room.id),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
-      ),
-      body: Consumer<RoomProvider>(
-        builder: (context, roomProvider, child) {
-          if (roomProvider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (roomProvider.error != null) {
-            return Center(child: Text('오류가 발생했습니다: ${roomProvider.error}'));
-          }
-          final rooms = roomProvider.rooms;
-          return ListView.builder(
-            itemCount: rooms.length,
-            itemBuilder: (context, index) {
-              final room = rooms[index];
-              return RoomListItem(
-                room: room,
-                onLongPress: () => _showDeleteRoomBottomSheet(room.id),
-              );
-            },
-          );
-        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showCreateRoomBottomSheet,

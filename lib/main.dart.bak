@@ -14,26 +14,10 @@ import 'package:my_chat_app/routes/app_router.dart'; // app_router 임포트
 import 'package:my_chat_app/repositories/room_repository.dart';
 import 'package:my_chat_app/repositories/chat_repository.dart'; // ChatRepository 임포트 추가
 import 'package:my_chat_app/providers/room_provider.dart';
-import 'package:window_manager/window_manager.dart'; // window_manager 임포트
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // window_manager 초기화
-  await windowManager.ensureInitialized();
-
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(1280, 720),
-    minimumSize: Size(800, 600),
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden, // 제목 표시줄 숨기기
-  );
-  await windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
 
   // 전역 에러 핸들러 설정
   ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -97,31 +81,8 @@ void main() async {
   );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> with WindowListener {
-  @override
-  void initState() {
-    super.initState();
-    windowManager.addListener(this);
-    _init();
-  }
-
-  @override
-  void dispose() {
-    windowManager.removeListener(this);
-    super.dispose();
-  }
-
-  void _init() async {
-    await windowManager.setPreventClose(true);
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,38 +96,5 @@ class _MyAppState extends State<MyApp> with WindowListener {
       routerConfig: appRouter, // go_router 인스턴스 적용
       debugShowCheckedModeBanner: true,
     );
-  }
-
-  @override
-  void onWindowClose() async {
-    bool isPreventClose = await windowManager.isPreventClose();
-    if (isPreventClose) {
-      if (!mounted) return; // 위젯이 마운트되지 않았다면 리턴
-      // showDialog(
-      //   context: context,
-      //   builder: (BuildContext context) { // BuildContext 명시적 선언
-      //     return AlertDialog(
-      //       title: const Text('앱 종료'),
-      //       content: const Text('앱을 종료하시겠습니까?'),
-      //       actions: [
-      //         TextButton(
-      //           onPressed: () async {
-      //             await windowManager.destroy();
-      //           },
-      //           child: const Text('종료'),
-      //         ),
-      //         TextButton(
-      //           onPressed: () {
-      //             Navigator.of(context).pop();
-      //           },
-      //           child: const Text('취소'),
-      //         ),
-      //       ],
-      //     );
-      //   },
-      // );
-      // 다이얼로그 대신 바로 종료
-      await windowManager.destroy();
-    }
   }
 }
