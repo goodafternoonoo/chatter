@@ -26,7 +26,6 @@ class ChatRepository {
         .from(AppConstants.messagesTableName)
         .select()
         .eq('room_id', roomId)
-        .eq('is_deleted', false) // is_deleted 필터 추가
         .order('created_at', ascending: false) // 최신순으로 정렬
         .limit(limit);
 
@@ -42,7 +41,6 @@ class ChatRepository {
         .from(AppConstants.messagesTableName)
         .select()
         .eq('room_id', roomId)
-        .eq('is_deleted', false) // is_deleted 필터 추가
         // .lt()에서 .lte()로 변경하여 동일 시간의 메시지를 포함시키고,
         // .toUtc()를 호출하여 Dart의 DateTime을 DB의 TIMESTAMPTZ와 일치하는
         // UTC 시간으로 변환합니다. 이것이 Timezone 문제의 핵심 해결책입니다.
@@ -95,29 +93,10 @@ class ChatRepository {
 
   Future<void> markMessageAsRead(String messageId, String? localUserId) async {
     if (localUserId == null) return;
-    final List<dynamic> response = await _supabase
-        .from(AppConstants.messagesTableName)
-        .select('read_by')
-        .eq('id', messageId)
-        .limit(1);
-
-    if (response.isEmpty) return;
-
-    final currentReadBy = (response[0]['read_by'] as List<dynamic>? ?? [])
-        .map((e) => e.toString())
-        .toList();
-
-    if (currentReadBy.contains(localUserId)) {
-      return;
-    }
-
-    final newReadBy = List<String>.from(currentReadBy);
-    newReadBy.add(localUserId);
-
-    await _supabase
-        .from(AppConstants.messagesTableName)
-        .update({'read_by': newReadBy})
-        .eq('id', messageId);
+    await _supabase.rpc(
+      'mark_message_as_read',
+      params: {'message_id': messageId, 'user_id': localUserId},
+    );
   }
 
   // 메시지 검색

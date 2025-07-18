@@ -222,63 +222,37 @@ class ChatProvider with ChangeNotifier {
     }
   }
 
-  Future<void> markMessageAsRead(String messageId) async {
-    if (_profileProvider.currentLocalUserId == null) return;
-
-    try {
-      await _chatRepository.markMessageAsRead(
-        messageId,
-        _profileProvider.currentLocalUserId,
-      );
-    } catch (e) {
-      _error = '메시지 읽음 처리 실패: $e';
-      if (kDebugMode) {
-        print(e);
-      }
-      rethrow;
-    }
-  }
-
   Future<void> markAllMessagesAsRead() async {
     if (_profileProvider.currentLocalUserId == null) return;
 
-    final currentUserId = _profileProvider.currentLocalUserId;
-    final List<Message> messagesToUpdate = [];
-
-    for (var message in _messages) {
-      if (message.localUserId != currentUserId &&
-          !message.readBy.contains(currentUserId)) {
-        messagesToUpdate.add(message);
-      }
-    }
+    final currentUserId = _profileProvider.currentLocalUserId!;
+    final List<Message> messagesToUpdate = _messages
+        .where((msg) => !msg.readBy.contains(currentUserId))
+        .toList();
 
     if (messagesToUpdate.isEmpty) return;
 
     try {
+      // 여러 메시지를 병렬로 읽음 처리
+      await Future.wait(messagesToUpdate.map(
+        (message) => _chatRepository.markMessageAsRead(message.id, currentUserId),
+      ));
+
+      // 로컬 상태를 즉시 업데이트하여 UI에 반영
       for (var message in messagesToUpdate) {
-        await _chatRepository.markMessageAsRead(message.id, currentUserId);
-        // 로컬 메시지 객체의 readBy 리스트 업데이트
-        final index = _messages.indexWhere((msg) => msg.id == message.id);
+        final index = _messages.indexWhere((m) => m.id == message.id);
         if (index != -1) {
-          _messages[index] = Message(
-            id: _messages[index].id,
-            content: _messages[index].content,
-            localUserId: _messages[index].localUserId,
-            createdAt: _messages[index].createdAt,
-            readBy: List<String>.from(_messages[index].readBy)
-              ..add(currentUserId!),
-            imageUrl: _messages[index].imageUrl,
-            isDeleted: _messages[index].isDeleted,
-          );
+          _messages[index].readBy.add(currentUserId);
         }
       }
       notifyListeners();
+
     } catch (e) {
       _error = '모든 메시지 읽음 처리 실패: $e';
       if (kDebugMode) {
         print(e);
       }
-      rethrow;
+      // 에러를 다시 던지지 않고 UI에 오류를 표시하도록 처리
     }
   }
 
