@@ -133,16 +133,10 @@ class _MessageInputState extends State<MessageInput> {
                       maxLines: 5,
                       decoration: InputDecoration(
                         hintText: '메시지를 입력하세요',
-                        border:
-                            InputBorder.none, // Remove default TextField border
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: UIConstants.messageInputHorizontalPadding,
                           vertical: UIConstants.messageInputVerticalPadding,
                         ),
-                        fillColor: colorScheme
-                            .surfaceContainerHighest, // Use theme's input fill color
-                        filled:
-                            true, // Ensure filled is true for the fill color to apply
                       ),
                       keyboardType: TextInputType.multiline,
                       onTapOutside: (event) => FocusScope.of(context).unfocus(),
