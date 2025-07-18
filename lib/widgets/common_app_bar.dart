@@ -23,7 +23,13 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     return PreferredSize(
       preferredSize: preferredSize,
       child: AppBar(
-        title: title,
+        centerTitle: false, // title이 가능한 한 많은 공간을 차지하도록 설정
+        title: DragToMoveArea(
+          child: Align(
+            alignment: Alignment.centerLeft, // title의 기본 정렬 유지
+            child: title ?? const SizedBox.shrink(),
+          ),
+        ),
         automaticallyImplyLeading: automaticallyImplyLeading,
         actions: [
           IconButton(
