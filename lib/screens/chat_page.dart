@@ -3,14 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:my_chat_app/providers/chat_provider.dart';
+import 'package:my_chat_app/providers/room_provider.dart'; // RoomProvider 임포트
 import 'package:my_chat_app/utils/error_utils.dart';
-// import 'package:my_chat_app/constants/ui_constants.dart'; // Unused import removed
 import 'package:my_chat_app/mixins/scroll_controller_mixin.dart';
 import 'package:my_chat_app/widgets/common_app_bar.dart';
 import 'package:my_chat_app/widgets/chat/search_field.dart';
 import 'package:my_chat_app/widgets/chat/message_list.dart';
 import 'package:my_chat_app/widgets/chat/message_input.dart';
-
 
 class ChatPage extends StatefulWidget {
   final String roomId;
@@ -21,7 +20,8 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage>, WidgetsBindingObserver {
+class _ChatPageState extends State<ChatPage>
+    with ScrollControllerMixin<ChatPage>, WidgetsBindingObserver {
   final _messageController = TextEditingController();
   final _focusNode = FocusNode();
   final _searchController = TextEditingController();
@@ -78,7 +78,8 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
   }
 
   void _onScroll() {
-    if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+    if (scrollController.position.pixels ==
+        scrollController.position.maxScrollExtent) {
       final chatProvider = context.read<ChatProvider>();
       if (chatProvider.hasMoreMessages && !chatProvider.isLoadingMore) {
         chatProvider.loadMoreMessages();
@@ -153,6 +154,11 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
 
   @override
   Widget build(BuildContext context) {
+    final roomProvider = context.watch<RoomProvider>();
+    final roomName = roomProvider.rooms
+        .firstWhere((room) => room.id == widget.roomId)
+        .name;
+
     return Focus(
       autofocus: true,
       onKeyEvent: (node, event) {
@@ -163,7 +169,8 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
           _toggleSearch();
           return KeyEventResult.handled;
         }
-        if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.escape) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.escape) {
           if (_showSearchField) {
             _toggleSearch();
             _focusNode.requestFocus();
@@ -178,13 +185,12 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
           children: [
             Column(
               children: [
-                CommonAppBar( // 사용자 정의 AppBar를 body의 첫 번째 위젯으로 추가
-                  title: const Text('실시간 채팅'),
+                CommonAppBar(
+                  // 사용자 정의 AppBar를 body의 첫 번째 위젯으로 추가
+                  title: Text(roomName),
                   actions: [
                     IconButton(
-                      icon: Icon(
-                        _showSearchField ? Icons.close : Icons.search,
-                      ),
+                      icon: Icon(_showSearchField ? Icons.close : Icons.search),
                       onPressed: _toggleSearch,
                       tooltip: '메시지 검색',
                     ),
@@ -215,7 +221,9 @@ class _ChatPageState extends State<ChatPage> with ScrollControllerMixin<ChatPage
             ),
             if (showScrollToBottomButton)
               Positioned(
-                bottom: kToolbarHeight + 16.0, // UIConstants.spacingMedium 대신 직접 값 사용
+                bottom:
+                    kToolbarHeight +
+                    16.0, // UIConstants.spacingMedium 대신 직접 값 사용
                 left: 0.0,
                 right: 0.0,
                 child: Center(
