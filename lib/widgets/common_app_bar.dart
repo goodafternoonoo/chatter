@@ -22,19 +22,17 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     return PreferredSize(
       preferredSize: preferredSize,
-      child: DragToMoveArea(
-        child: AppBar(
-          title: title,
-          automaticallyImplyLeading: automaticallyImplyLeading,
-          actions: [
-            IconButton(
-              icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
-              onPressed: themeModeProvider.toggleTheme,
-            ),
-            ...?actions,
-            const WindowButtons(), // 창 제어 버튼 추가
-          ],
-        ),
+      child: AppBar(
+        title: title,
+        automaticallyImplyLeading: automaticallyImplyLeading,
+        actions: [
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: themeModeProvider.toggleTheme,
+          ),
+          ...?actions,
+          const WindowButtons(), // 창 제어 버튼 추가
+        ],
       ),
     );
   }

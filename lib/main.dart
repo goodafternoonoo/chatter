@@ -47,7 +47,10 @@ void main() async {
       child: Text(
         '오류가 발생했습니다.\n앱을 다시 시작해주세요.',
         textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.red.shade900, fontWeight: FontWeight.bold),
+        style: TextStyle(
+          color: Colors.red.shade900,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   };
@@ -84,13 +87,22 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => ThemeModeProvider()),
-        ChangeNotifierProvider(create: (context) => ProfileProvider()..initialize()), // ProfileProvider 먼저 초기화
-        ChangeNotifierProvider(create: (context) => ChatProvider(roomId: '', profileProvider: context.read<ProfileProvider>())..initialize()), // ChatProvider에 ProfileProvider 전달
-        ChangeNotifierProvider(create: (context) => RoomProvider(
-          roomRepository: RoomRepository(),
-          profileProvider: context.read<ProfileProvider>(),
-          chatRepository: ChatRepository(Supabase.instance.client),
-        )),
+        ChangeNotifierProvider(
+          create: (context) => ProfileProvider()..initialize(),
+        ), // ProfileProvider 먼저 초기화
+        ChangeNotifierProvider(
+          create: (context) => ChatProvider(
+            roomId: '',
+            profileProvider: context.read<ProfileProvider>(),
+          )..initialize(),
+        ), // ChatProvider에 ProfileProvider 전달
+        ChangeNotifierProvider(
+          create: (context) => RoomProvider(
+            roomRepository: RoomRepository(),
+            profileProvider: context.read<ProfileProvider>(),
+            chatRepository: ChatRepository(Supabase.instance.client),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -142,30 +154,6 @@ class _MyAppState extends State<MyApp> with WindowListener {
     bool isPreventClose = await windowManager.isPreventClose();
     if (isPreventClose) {
       if (!mounted) return; // 위젯이 마운트되지 않았다면 리턴
-      // showDialog(
-      //   context: context,
-      //   builder: (BuildContext context) { // BuildContext 명시적 선언
-      //     return AlertDialog(
-      //       title: const Text('앱 종료'),
-      //       content: const Text('앱을 종료하시겠습니까?'),
-      //       actions: [
-      //         TextButton(
-      //           onPressed: () async {
-      //             await windowManager.destroy();
-      //           },
-      //           child: const Text('종료'),
-      //         ),
-      //         TextButton(
-      //           onPressed: () {
-      //             Navigator.of(context).pop();
-      //           },
-      //           child: const Text('취소'),
-      //         ),
-      //       ],
-      //     );
-      //   },
-      // );
-      // 다이얼로그 대신 바로 종료
       await windowManager.destroy();
     }
   }
