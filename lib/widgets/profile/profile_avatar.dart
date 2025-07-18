@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class ProfileAvatar extends StatelessWidget {
   final String? avatarUrl;
@@ -12,11 +13,11 @@ class ProfileAvatar extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: CircleAvatar(
-        radius: 60,
+        radius: UIConstants.avatarRadius * 2,
         backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl!) : null,
         backgroundColor: colorScheme.primaryContainer,
         child: avatarUrl == null
-            ? Icon(Icons.person, size: 60, color: colorScheme.onPrimaryContainer)
+            ? Icon(Icons.person, size: UIConstants.avatarRadius * 2, color: colorScheme.onPrimaryContainer)
             : null,
       ),
     );

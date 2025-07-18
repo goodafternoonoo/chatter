@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:my_chat_app/constants/ui_constants.dart';
 
 class CreateRoomBottomSheet extends StatelessWidget {
   final TextEditingController controller;
@@ -16,9 +17,9 @@ class CreateRoomBottomSheet extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16.0,
-        right: 16.0,
-        top: 16.0,
+        left: UIConstants.paddingMedium,
+        right: UIConstants.paddingMedium,
+        top: UIConstants.paddingMedium,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

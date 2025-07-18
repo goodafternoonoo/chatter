@@ -33,7 +33,9 @@ class CustomToast extends StatelessWidget {
           ),
           child: Text(
             message,
-            style: TextStyle(color: colorScheme.onSurface, fontSize: 16.0),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: colorScheme.onSurface,
+            ),
           ),
         ),
       ),
