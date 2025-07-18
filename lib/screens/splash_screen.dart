@@ -45,7 +45,6 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    final profile = _profileProvider.currentProfile;
     // context.go('/main')으로 항상 이동
     context.go('/main');
   }
