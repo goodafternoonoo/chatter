@@ -84,15 +84,7 @@ class _RoomListScreenState extends State<RoomListScreen> {
         children: [
           CommonAppBar(
             title: const Text('채팅방 목록'),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.account_circle),
-                tooltip: '프로필 관리',
-                onPressed: () {
-                  context.push('/profile');
-                },
-              ),
-            ],
+            // actions: [ ... ] 부분 제거
           ),
           Expanded(
             child: Consumer<RoomProvider>(
@@ -101,7 +93,9 @@ class _RoomListScreenState extends State<RoomListScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (roomProvider.error != null) {
-                  return Center(child: Text('오류가 발생했습니다: ${roomProvider.error}'));
+                  return Center(
+                    child: Text('오류가 발생했습니다: ${roomProvider.error}'),
+                  );
                 }
                 final rooms = roomProvider.rooms;
                 return ListView.builder(

@@ -32,7 +32,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _profileProvider = context.read<ProfileProvider>();
     _profileProvider.addListener(_updateControllers);
     _updateControllers();
-    _isInitialSetup = _profileProvider.currentNickname == AppConstants.defaultNickname;
+    _isInitialSetup =
+        _profileProvider.currentNickname == AppConstants.defaultNickname;
   }
 
   @override
@@ -45,7 +46,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _updateControllers() {
     _nicknameController.text = _profileProvider.currentProfile?.nickname ?? '';
-    _statusMessageController.text = _profileProvider.currentProfile?.statusMessage ?? '';
+    _statusMessageController.text =
+        _profileProvider.currentProfile?.statusMessage ?? '';
   }
 
   Future<void> _pickImage() async {
@@ -71,12 +73,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
         if (!mounted) return;
         if (_isInitialSetup) {
-          context.go('/rooms');
+          context.go('/main');
         } else {
           if (context.canPop()) {
             context.pop();
           } else {
-            context.go('/rooms'); // Fallback to rooms if nothing to pop
+            context.go('/main'); // Fallback to main if nothing to pop
           }
         }
       } catch (e, s) {
@@ -94,36 +96,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: profileProvider.isLoading
           ? const Center(child: CircularProgressIndicator())
           : profileProvider.error != null
-              ? Center(child: Text('오류: ${profileProvider.error}'))
-              : Column(
-                  children: [
-                    CommonAppBar(
-                      title: Text(_isInitialSetup ? '닉네임 설정' : '프로필 관리'),
-                      automaticallyImplyLeading: !_isInitialSetup,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(UIConstants.paddingMedium),
-                        child: Column(
-                          children: [
-                            ProfileAvatar(
-                              avatarUrl: profileProvider.currentProfile?.avatarUrl,
-                              onTap: _pickImage,
-                            ),
-                            const SizedBox(height: UIConstants.spacingMedium),
-                            ProfileForm(
-                              formKey: _formKey,
-                              nicknameController: _nicknameController,
-                              statusMessageController: _statusMessageController,
-                              onSave: _saveProfile,
-                              buttonText: _isInitialSetup ? '채팅 시작하기' : '프로필 저장',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+          ? Center(child: Text('오류: ${profileProvider.error}'))
+          : Column(
+              children: [
+                CommonAppBar(
+                  title: Text(_isInitialSetup ? '닉네임 설정' : '프로필 관리'),
+                  automaticallyImplyLeading: !_isInitialSetup,
                 ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(UIConstants.paddingMedium),
+                    child: Column(
+                      children: [
+                        ProfileAvatar(
+                          avatarUrl: profileProvider.currentProfile?.avatarUrl,
+                          onTap: _pickImage,
+                        ),
+                        const SizedBox(height: UIConstants.spacingMedium),
+                        ProfileForm(
+                          formKey: _formKey,
+                          nicknameController: _nicknameController,
+                          statusMessageController: _statusMessageController,
+                          onSave: _saveProfile,
+                          buttonText: _isInitialSetup ? '채팅 시작하기' : '프로필 저장',
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

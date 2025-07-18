@@ -46,11 +46,8 @@ class _SplashScreenState extends State<SplashScreen> {
     }
 
     final profile = _profileProvider.currentProfile;
-    if (profile == null || profile.nickname.isEmpty) {
-      context.go('/profile');
-    } else {
-      context.go('/rooms');
-    }
+    // context.go('/main')으로 항상 이동
+    context.go('/main');
   }
 
   @override
