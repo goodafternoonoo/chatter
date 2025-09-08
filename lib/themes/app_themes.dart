@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:my_chat_app/constants/ui_constants.dart';
 
+/// 앱의 라이트 모드와 다크 모드 테마를 정의하는 클래스입니다.
+///
+/// Material 3 디자인 시스템을 기반으로 하며, 앱 전체의 색상, 글꼴,
+/// 컴포넌트 스타일을 일관되게 유지합니다.
 class AppThemes {
+  /// 라이트 모드에 사용될 색상 구성표입니다.
   static final ColorScheme _lightColorScheme = ColorScheme.fromSeed(
     seedColor: Colors.blueGrey,
     brightness: Brightness.light,
   );
 
+  /// 다크 모드에 사용될 색상 구성표입니다.
   static final ColorScheme _darkColorScheme = ColorScheme.fromSeed(
     seedColor: Colors.blueGrey,
     brightness: Brightness.dark,
   );
 
+  /// 앱의 라이트 모드 `ThemeData`입니다.
   static ThemeData get lightTheme {
     return ThemeData(
       fontFamily: 'NotoSansKR',
@@ -96,6 +103,7 @@ class AppThemes {
     );
   }
 
+  /// 앱의 다크 모드 `ThemeData`입니다.
   static ThemeData get darkTheme {
     return ThemeData(
       fontFamily: 'NotoSansKR',
